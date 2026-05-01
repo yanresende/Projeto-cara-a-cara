@@ -1,0 +1,100 @@
+// Backend type re-exports
+export interface UserProfile {
+  id: string;
+  username: string;
+  score: number;
+  gamesPlayed: number;
+  gamesWon: number;
+}
+
+export type GameStatus = 'waiting' | 'starting' | 'playing' | 'finished';
+
+export interface Player {
+  id: string;
+  username: string;
+  joinedAt: Date;
+}
+
+export interface Room {
+  id: string;
+  name: string;
+  themeId: string;
+  players: Player[];
+  maxPlayers: number;
+  createdAt: Date;
+  status: GameStatus;
+}
+
+export interface RoomWithoutPassword {
+  id: string;
+  name: string;
+  themeId: string;
+  playerCount: number;
+  maxPlayers: number;
+  createdAt: Date;
+  status: GameStatus;
+}
+
+export interface Guess {
+  characterId: string;
+  createdAt: Date;
+  correct: boolean;
+}
+
+export interface Question {
+  id: string;
+  content: string;
+  askedBy: string;
+  answer: 'sim' | 'nao';
+  createdAt: Date;
+}
+
+export interface GameRound {
+  id: string;
+  roomId: string;
+  themeId: string;
+  questionerPlayerId: string;
+  thinkerPlayerId: string;
+  secretCharacterId: string;
+  questions: Question[];
+  guesses: Guess[];
+  completed: boolean;
+  winner?: string;
+  createdAt: Date;
+}
+
+export interface GameMessage {
+  type: 'game_started' | 'turn_changed' | 'game_ended' | 'question_submitted' | 'guess_submitted';
+  payload: any;
+}
+
+export interface Theme {
+  id: string;
+  name: string;
+  description?: string;
+  coverImageUrl?: string;
+}
+
+export interface Character {
+  id: string;
+  name: string;
+  imageUrl: string;
+  themeId: string;
+  attributes?: Record<string, any>;
+}
+
+// Frontend-specific types
+export interface FormError {
+  field: string;
+  message: string;
+}
+
+export interface AuthPayload {
+  username: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: UserProfile;
+}

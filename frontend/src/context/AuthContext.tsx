@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
-import { getToken, saveToken, saveUser, clearAuth } from '../utils/localStorage';
+import { getToken, getUser, saveToken, saveUser, clearAuth } from '../utils/localStorage';
+import { socketService } from '../services/socketService';
 import type { UserProfile, AuthPayload } from '../types/index';
 
 interface AuthContextType {
@@ -25,8 +26,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initialize from localStorage
   useEffect(() => {
     const storedToken = getToken();
+    const storedUser = getUser();
     if (storedToken) {
       setToken(storedToken);
+      if (storedUser) {
+        setUser(storedUser);
+      }
+      if (!socketService.isConnected()) {
+        socketService.connect(storedToken).catch(console.error);
+      }
     }
   }, []);
 
@@ -39,6 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.user);
       saveToken(response.token);
       saveUser(response.user);
+      await socketService.connect(response.token);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
       setError(message);
@@ -57,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.user);
       saveToken(response.token);
       saveUser(response.user);
+      await socketService.connect(response.token);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Signup failed';
       setError(message);

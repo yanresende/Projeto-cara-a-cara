@@ -4,6 +4,8 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRouter from './routes/auth';
+import themesRouter from './routes/themes';
+import rankingRouter from './routes/ranking';
 import { roomService } from './services/roomService';
 import { gameService } from './services/gameService';
 import { socketAuthMiddleware } from './middleware/socketAuth';
@@ -33,6 +35,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api/themes', themesRouter);
 
 // --- Socket.IO Middleware ---
 io.use(socketAuthMiddleware);
@@ -103,8 +106,9 @@ io.on('connection', async (socket: CustomSocket) => {
       // Notificar a sala que um jogador entrou
       io.to(roomId).emit('player_joined', {
         roomId,
-        playerCount: room.players.length,
+        userId: socket.userId,
         username: socket.username || 'Anônimo',
+        playerCount: room.players.length,
       });
 
       callback({ success: true, room: roomService.roomToDTO(room) });
@@ -128,6 +132,7 @@ io.on('connection', async (socket: CustomSocket) => {
       if (room) {
         io.to(roomId).emit('player_left', {
           roomId,
+          userId: socket.userId,
           playerCount: room.players.length,
         });
 
@@ -149,6 +154,18 @@ io.on('connection', async (socket: CustomSocket) => {
   // --- Evento: list_rooms ---
   socket.on('list_rooms', (callback) => {
     callback({ rooms: roomService.getAvailableRoomsDTO() });
+  });
+
+  // --- Evento: get_room ---
+  socket.on('get_room', (data: { roomId: string }, callback) => {
+    const room = roomService.getRoomById(data.roomId);
+    if (!room) {
+      return callback({ success: false, error: 'Sala não encontrada' });
+    }
+    callback({
+      success: true,
+      room: { ...roomService.roomToDTO(room), players: room.players },
+    });
   });
 
   // --- Evento: start_game ---

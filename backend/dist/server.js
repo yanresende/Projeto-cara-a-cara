@@ -10,7 +10,9 @@ const socket_io_1 = require("socket.io");
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const auth_1 = __importDefault(require("./routes/auth"));
+const themes_1 = __importDefault(require("./routes/themes"));
 const roomService_1 = require("./services/roomService");
+const gameService_1 = require("./services/gameService");
 const socketAuth_1 = require("./middleware/socketAuth");
 dotenv_1.default.config();
 const { PrismaClient } = require('@prisma/client');
@@ -30,6 +32,7 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'API do Cara a Cara está rodando!' });
 });
 app.use('/api/auth', auth_1.default);
+app.use('/api/themes', themes_1.default);
 // --- Socket.IO Middleware ---
 io.use(socketAuth_1.socketAuthMiddleware);
 // --- Socket.IO Connection ---
@@ -127,6 +130,118 @@ io.on('connection', async (socket) => {
     // --- Evento: list_rooms ---
     socket.on('list_rooms', (callback) => {
         callback({ rooms: roomService_1.roomService.getAvailableRoomsDTO() });
+    });
+    // --- Evento: start_game ---
+    socket.on('start_game', async (data, callback) => {
+        try {
+            const { roomId } = data;
+            const room = roomService_1.roomService.getRoomById(roomId);
+            if (!room) {
+                return callback({ success: false, error: 'Sala não encontrada' });
+            }
+            if (room.players.length !== 2) {
+                return callback({ success: false, error: 'A sala precisa ter 2 jogadores' });
+            }
+            if (gameService_1.gameService.isGameActive(roomId)) {
+                return callback({ success: false, error: 'Já há um jogo ativo nessa sala' });
+            }
+            // Start game
+            const game = await gameService_1.gameService.startGame(roomId, room.themeId, room.players[0].id, room.players[1].id);
+            // Update room status
+            roomService_1.roomService.updateRoomStatus(roomId, 'playing');
+            // Fetch characters for UI
+            const characters = await gameService_1.gameService.getCharactersByTheme(room.themeId);
+            // Emit game_started to room
+            io.to(roomId).emit('game_started', {
+                roomId,
+                questionerId: game.questionerPlayerId,
+                questionerUsername: room.players.find(p => p.id === game.questionerPlayerId)?.username || 'Jogador',
+                thinkerId: game.thinkerPlayerId,
+                thinkerUsername: room.players.find(p => p.id === game.thinkerPlayerId)?.username || 'Jogador',
+                themeId: room.themeId,
+                characters: characters.map(c => ({ id: c.id, name: c.name, imageUrl: c.imageUrl })),
+            });
+            callback({ success: true, game });
+            console.log(`[Game] Jogo iniciado em sala ${roomId}`);
+        }
+        catch (error) {
+            console.error('Erro ao iniciar jogo:', error);
+            callback({ success: false, error: 'Erro ao iniciar jogo' });
+        }
+    });
+    // --- Evento: submit_question ---
+    socket.on('submit_question', async (data, callback) => {
+        try {
+            const { roomId, question } = data;
+            if (!question || question.trim().length === 0) {
+                return callback({ success: false, error: 'Pergunta não pode estar vazia' });
+            }
+            const game = gameService_1.gameService.getGameByRoomId(roomId);
+            if (!game || game.completed) {
+                return callback({ success: false, error: 'Nenhum jogo ativo nessa sala' });
+            }
+            if (game.questionerPlayerId !== socket.userId) {
+                return callback({ success: false, error: 'Apenas o questionador pode fazer perguntas' });
+            }
+            const result = await gameService_1.gameService.submitQuestion(roomId, question, socket.userId);
+            // Emit to room
+            io.to(roomId).emit('question_submitted', {
+                question: result.question,
+                answer: result.answer,
+                questionerUsername: socket.username,
+            });
+            callback({ success: true, answer: result.answer });
+            console.log(`[Game] Pergunta em sala ${roomId}: "${question}" → ${result.answer}`);
+        }
+        catch (error) {
+            console.error('Erro ao submeter pergunta:', error);
+            callback({ success: false, error: 'Erro ao submeter pergunta' });
+        }
+    });
+    // --- Evento: submit_guess ---
+    socket.on('submit_guess', async (data, callback) => {
+        try {
+            const { roomId, characterId } = data;
+            const game = gameService_1.gameService.getGameByRoomId(roomId);
+            if (!game || game.completed) {
+                return callback({ success: false, error: 'Nenhum jogo ativo nessa sala' });
+            }
+            if (game.thinkerPlayerId !== socket.userId) {
+                return callback({ success: false, error: 'Apenas o adivinhador pode fazer adivinhações' });
+            }
+            const result = await gameService_1.gameService.submitGuess(roomId, characterId, socket.userId);
+            const character = await gameService_1.gameService.getSecretCharacter(characterId);
+            if (result.correct) {
+                // Game ended - update room status
+                roomService_1.roomService.updateRoomStatus(roomId, 'finished');
+                io.to(roomId).emit('game_ended', {
+                    winnerId: socket.userId,
+                    winnerUsername: socket.username,
+                    message: `${socket.username} acertou! Era ${character.name}!`,
+                });
+                console.log(`[Game] Sala ${roomId} finalizada. Vencedor: ${socket.username}`);
+                // Reset room after 3 seconds
+                setTimeout(() => {
+                    gameService_1.gameService.endGame(roomId);
+                    roomService_1.roomService.updateRoomStatus(roomId, 'waiting');
+                    io.emit('rooms_updated', { rooms: roomService_1.roomService.getAvailableRoomsDTO() });
+                }, 3000);
+                callback({ success: true, correct: true, message: 'Você acertou!' });
+            }
+            else {
+                io.to(roomId).emit('guess_result', {
+                    characterName: character.name,
+                    isCorrect: false,
+                    message: `Errado! Não era ${character.name}. Continue tentando!`,
+                });
+                callback({ success: true, correct: false, message: 'Errado, tente de novo!' });
+                console.log(`[Game] Adivinhação errada em sala ${roomId}: ${character.name}`);
+            }
+        }
+        catch (error) {
+            console.error('Erro ao submeter adivinhação:', error);
+            callback({ success: false, error: 'Erro ao submeter adivinhação' });
+        }
     });
     // --- Evento: disconnect ---
     socket.on('disconnect', () => {

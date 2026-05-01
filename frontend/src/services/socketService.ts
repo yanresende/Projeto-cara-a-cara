@@ -104,6 +104,10 @@ class SocketService {
     this.emit(SOCKET_EVENTS.LIST_ROOMS, callback);
   }
 
+  getRoom(roomId: string, callback: (response: any) => void): void {
+    this.emit('get_room', { roomId }, callback);
+  }
+
   startGame(roomId: string, callback: (response: any) => void): void {
     this.emit(SOCKET_EVENTS.START_GAME, { roomId }, callback);
   }

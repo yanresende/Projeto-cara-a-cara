@@ -53,6 +53,12 @@ class RoomService {
             this.rooms.delete(roomId);
         }
     }
+    updateRoomStatus(roomId, status) {
+        const room = this.rooms.get(roomId);
+        if (room) {
+            room.status = status;
+        }
+    }
     roomToDTO(room) {
         return {
             id: room.id,

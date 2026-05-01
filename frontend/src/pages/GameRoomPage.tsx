@@ -41,19 +41,37 @@ export const GameRoomPage: React.FC = () => {
       return;
     }
 
-    // Mock room data - in production, fetch from somewhere
-    setRoom({
-      id: roomId,
-      name: 'Sala do Jogo',
-      themeId: '1',
-      players: [
-        { id: 'player1', username: 'Jogador 1', joinedAt: new Date() },
-        { id: 'player2', username: 'Jogador 2', joinedAt: new Date() },
-      ],
-      maxPlayers: 2,
-      createdAt: new Date(),
-      status: 'playing',
+    socketService.getRoom(roomId, (response) => {
+      if (response.success) {
+        setRoom(response.room);
+      } else {
+        navigate('/');
+      }
     });
+
+    const handlePlayerJoined = (data: { roomId: string; userId: string; username: string }) => {
+      if (data.roomId !== roomId) return;
+      setRoom(prev => {
+        if (!prev || prev.players.some(p => p.id === data.userId)) return prev;
+        return { ...prev, players: [...prev.players, { id: data.userId, username: data.username, joinedAt: new Date() }] };
+      });
+    };
+
+    const handlePlayerLeft = (data: { roomId: string; userId: string }) => {
+      if (data.roomId !== roomId) return;
+      setRoom(prev => {
+        if (!prev) return prev;
+        return { ...prev, players: prev.players.filter(p => p.id !== data.userId) };
+      });
+    };
+
+    socketService.on('player_joined', handlePlayerJoined);
+    socketService.on('player_left', handlePlayerLeft);
+
+    return () => {
+      socketService.off('player_joined', handlePlayerJoined);
+      socketService.off('player_left', handlePlayerLeft);
+    };
   }, [roomId, navigate]);
 
   useEffect(() => {

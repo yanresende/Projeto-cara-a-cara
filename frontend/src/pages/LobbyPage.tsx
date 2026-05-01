@@ -3,26 +3,52 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import { socketService } from '../services/socketService';
+import { API_URL } from '../utils/constants';
+import type { Theme } from '../types/index';
 import { Button } from '../components/common/Button';
 import './LobbyPage.css';
 
 export const LobbyPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { rooms } = useGame();
+  const { rooms, setRooms } = useGame();
   const [selectedThemeId, setSelectedThemeId] = useState('');
   const [roomName, setRoomName] = useState('');
-  const [themes, setThemes] = useState<any[]>([]);
+  const [themes, setThemes] = useState<Theme[]>([]);
+  const [themeError, setThemeError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch themes - mock for now
-    const mockThemes = [
-      { id: '1', name: 'Animais' },
-      { id: '2', name: 'Filmes Clássicos' },
-      { id: '3', name: 'Profissões' },
-    ];
-    setThemes(mockThemes);
+    const loadThemes = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/themes`);
+
+        if (!response.ok) {
+          throw new Error('Falha ao carregar temas');
+        }
+
+        const data = await response.json();
+        setThemes(data.themes || []);
+        setThemeError(null);
+      } catch (error) {
+        console.error('Erro ao carregar temas:', error);
+        setThemeError('Não foi possível carregar os temas disponíveis.');
+      }
+    };
+
+    loadThemes();
   }, []);
+
+  useEffect(() => {
+    const handleRoomsUpdated = (data: { rooms: Parameters<typeof setRooms>[0] }) => {
+      setRooms(data.rooms);
+    };
+
+    socketService.on('rooms_updated', handleRoomsUpdated);
+
+    return () => {
+      socketService.off('rooms_updated', handleRoomsUpdated);
+    };
+  }, [setRooms]);
 
   const handleLogout = () => {
     logout();
@@ -65,10 +91,12 @@ export const LobbyPage: React.FC = () => {
       <div className="lobby-content">
         <div className="create-room-section">
           <h2>Criar Nova Sala</h2>
+          {themeError && <p className="empty-message">{themeError}</p>}
           <div className="create-form">
             <select
               value={selectedThemeId}
               onChange={e => setSelectedThemeId(e.target.value)}
+              disabled={themes.length === 0}
             >
               <option value="">Selecione um tema</option>
               {themes.map(theme => (
@@ -85,7 +113,7 @@ export const LobbyPage: React.FC = () => {
             />
             <Button
               onClick={handleCreateRoom}
-              disabled={!selectedThemeId || !roomName.trim()}
+              disabled={!selectedThemeId || !roomName.trim() || themes.length === 0}
             >
               Criar Sala
             </Button>

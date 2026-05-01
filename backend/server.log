@@ -171,3 +171,6 @@ Emitted 'error' event on Server instance at:
 }
 
 Node.js v24.14.0
+12:47:10 [tsx] change in ./src\server.ts Rerunning...
+c◇ injected env (10) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+[Server] Rodando na porta http://localhost:3001

@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  username      String   @unique
+  passwordHash  String
+  score         Int      @default(0)
+  gamesPlayed   Int      @default(0)
+  gamesWon      Int      @default(0)
+
+  gamesWonAs    MatchHistory[] @relation("Winner")
+  gamesLostAs   MatchHistory[] @relation("Loser")
+
+  gamesAsQuestioner  Game[] @relation("Questioner")
+  gamesAsThinker     Game[] @relation("Thinker")
+  gamesAsWinner      Game[] @relation("Winner")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Theme {
+  id             String      @id @default(uuid())
+  name           String
+  description    String?
+  coverImageUrl  String?
+
+  characters     Character[]
+  matches        MatchHistory[]
+  games          Game[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Character {
+  id         String   @id @default(uuid())
+  themeId    String
+  theme      Theme    @relation(fields: [themeId], references: [id])
+  name       String
+  imageUrl   String
+  attributes Json?
+
+  gamesUsingThis   Game[]
+  guesses          GameGuess[]
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model MatchHistory {
+  id         String   @id @default(uuid())
+
+  winnerId   String?
+  winner     User?    @relation("Winner", fields: [winnerId], references: [id])
+
+  loserId    String?
+  loser      User?    @relation("Loser", fields: [loserId], references: [id])
+
+  themeId    String
+  theme      Theme    @relation(fields: [themeId], references: [id])
+
+  createdAt  DateTime @default(now())
+}
+
+model Game {
+  id                    String   @id @default(cuid())
+  themeId               String
+  theme                 Theme    @relation(fields: [themeId], references: [id])
+
+  questionerId          String
+  questioner            User     @relation("Questioner", fields: [questionerId], references: [id])
+
+  thinkerId             String
+  thinker               User     @relation("Thinker", fields: [thinkerId], references: [id])
+
+  secretCharacterId     String
+  character             Character @relation(fields: [secretCharacterId], references: [id])
+
+  questionCount         Int      @default(0)
+  guessList             GameGuess[]
+
+  winnerId              String?
+  winner                User?    @relation("Winner", fields: [winnerId], references: [id])
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model GameGuess {
+  id                    String   @id @default(cuid())
+  gameId                String
+  game                  Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  characterId           String
+  character             Character @relation(fields: [characterId], references: [id])
+
+  correct               Boolean  @default(false)
+  createdAt             DateTime @default(now())
+}

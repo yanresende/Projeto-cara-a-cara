@@ -1,0 +1,173 @@
+
+> backend@1.0.0 dev
+> tsx watch src/server.ts
+
+◇ injected env (5) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+prisma:warn In production, we recommend using `prisma generate --no-engine` (See: `prisma generate --help`)
+node:events:486
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1948:16)
+    at listenInCluster (node:net:2005:12)
+    at Server.listen (node:net:2110:7)
+    at authRouter (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\src\server.ts:48:8)
+    at Object.<anonymous> (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\src\server.ts:50:2)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object.transformer (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\node_modules\tsx\dist\register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1984:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3001
+}
+
+Node.js v24.14.0
+11:40:35 [tsx] change in ./src\server.ts Rerunning...
+c◇ injected env (5) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+prisma:warn In production, we recommend using `prisma generate --no-engine` (See: `prisma generate --help`)
+node:events:486
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1948:16)
+    at listenInCluster (node:net:2005:12)
+    at Server.listen (node:net:2110:7)
+    at authRouter (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\src\server.ts:48:8)
+    at Object.<anonymous> (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\src\server.ts:50:2)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object.transformer (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\node_modules\tsx\dist\register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1984:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3001
+}
+
+Node.js v24.14.0
+11:59:40 [tsx] change in ./src\server.ts Rerunning...
+c◇ injected env (10) from .env // tip: ⌘ enable debugging { debug: true }
+node:events:486
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1948:16)
+    at listenInCluster (node:net:2005:12)
+    at Server.listen (node:net:2110:7)
+    at authRouter (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\src\server.ts:170:8)
+    at Object.<anonymous> (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\src\server.ts:172:2)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object.transformer (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\node_modules\tsx\dist\register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1984:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3001
+}
+
+Node.js v24.14.0
+12:10:20 [tsx] change in ./src\server.ts Rerunning...
+c◇ injected env (10) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+node:events:486
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1948:16)
+    at listenInCluster (node:net:2005:12)
+    at Server.listen (node:net:2110:7)
+    at authRouter (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\src\server.ts:171:8)
+    at Object.<anonymous> (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\src\server.ts:173:2)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object.transformer (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\node_modules\tsx\dist\register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1984:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3001
+}
+
+Node.js v24.14.0
+12:24:17 [tsx] change in ./src\server.ts Rerunning...
+c◇ injected env (10) from .env // tip: ⌘ suppress logs { quiet: true }
+node:events:486
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1948:16)
+    at listenInCluster (node:net:2005:12)
+    at Server.listen (node:net:2110:7)
+    at authRouter (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\src\server.ts:172:8)
+    at Object.<anonymous> (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\src\server.ts:174:2)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object.transformer (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\node_modules\tsx\dist\register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1984:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3001
+}
+
+Node.js v24.14.0
+12:24:30 [tsx] change in ./src\server.ts Rerunning...
+c◇ injected env (10) from .env // tip: ⌘ suppress logs { quiet: true }
+node:events:486
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1948:16)
+    at listenInCluster (node:net:2005:12)
+    at Server.listen (node:net:2110:7)
+    at authRouter (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\src\server.ts:311:8)
+    at Object.<anonymous> (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\src\server.ts:313:2)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object.transformer (C:\Users\sares\Downloads\Github\Projeto-cara-a-cara\backend\node_modules\tsx\dist\register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1984:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3001
+}
+
+Node.js v24.14.0

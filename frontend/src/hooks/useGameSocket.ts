@@ -76,6 +76,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       setEliminatedCharacters(new Set());
       setTurnPhase(data.firstTurnPlayerId === user?.id ? 'my_turn_ask' : 'opponent_turn');
       setGameEnded(false);
+      setIsLoading(false);
       setError(null);
       setGuessResult(null);
     };

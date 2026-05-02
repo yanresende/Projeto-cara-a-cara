@@ -27,7 +27,6 @@ export const GameRoomPage: React.FC = () => {
     error,
     gameEnded,
     winnerId,
-    winnerName,
     guessResult,
     isMyTurn,
     submitQuestion,
@@ -136,7 +135,6 @@ export const GameRoomPage: React.FC = () => {
   if (!room) return <div className="game-room loading">Carregando...</div>;
 
   const opponentName = room.players.find(p => p.id !== user?.id)?.username || 'Adversário';
-  const currentTurnName = gameState?.currentTurnPlayerId === user?.id ? 'Você' : opponentName;
   const isWinner = winnerId === user?.id;
 
   const renderTurnBanner = () => {

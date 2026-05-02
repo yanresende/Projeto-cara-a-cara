@@ -54,7 +54,13 @@ io.on('connection', async (socket: CustomSocket) => {
     console.error('Erro ao buscar usuário:', error);
   }
 
-  socket.emit('rooms_updated', { rooms: roomService.getAvailableRoomsDTO() });
+  // Recoloca o socket nos rooms do socket.io para salas onde o jogador já está
+  const userRooms = roomService.getAllRooms().filter(r => r.players.some(p => p.id === socket.userId));
+  for (const r of userRooms) {
+    socket.join(r.id);
+  }
+
+  socket.emit('rooms_updated', { rooms: roomService.getAllNonFinishedRoomsDTO() });
 
   // --- create_room ---
   socket.on('create_room', async (data, callback) => {
@@ -65,7 +71,7 @@ io.on('connection', async (socket: CustomSocket) => {
 
       const room = roomService.createRoom(themeId, roomName, socket.userId!, socket.username || 'Anônimo');
       socket.join(room.id);
-      io.emit('rooms_updated', { rooms: roomService.getAvailableRoomsDTO() });
+      io.emit('rooms_updated', { rooms: roomService.getAllNonFinishedRoomsDTO() });
       callback({ success: true, roomId: room.id, room: roomService.roomToDTO(room) });
       console.log(`[Room] Sala criada: ${room.id} por ${socket.username}`);
     } catch (error) {
@@ -81,20 +87,30 @@ io.on('connection', async (socket: CustomSocket) => {
       const room = roomService.getRoomById(roomId);
       if (!room) return callback({ success: false, error: 'Sala não encontrada' });
 
-      if (!roomService.joinRoom(roomId, socket.userId!, socket.username || 'Anônimo')) {
-        return callback({ success: false, error: 'Não foi possível entrar na sala' });
+      const alreadyInRoom = room.players.some(p => p.id === socket.userId);
+
+      if (!alreadyInRoom) {
+        if (!roomService.joinRoom(roomId, socket.userId!, socket.username || 'Anônimo')) {
+          return callback({ success: false, error: 'Não foi possível entrar na sala' });
+        }
       }
 
       socket.join(roomId);
-      io.emit('rooms_updated', { rooms: roomService.getAvailableRoomsDTO() });
-      io.to(roomId).emit('player_joined', {
-        roomId,
-        userId: socket.userId!,
-        username: socket.username || 'Anônimo',
-        playerCount: room.players.length,
-      });
+
+      if (!alreadyInRoom) {
+        io.emit('rooms_updated', { rooms: roomService.getAllNonFinishedRoomsDTO() });
+        io.to(roomId).emit('player_joined', {
+          roomId,
+          userId: socket.userId!,
+          username: socket.username || 'Anônimo',
+          playerCount: room.players.length,
+        });
+        console.log(`[Room] ${socket.username} entrou na sala ${roomId}`);
+      } else {
+        console.log(`[Room] ${socket.username} reconectou à sala ${roomId}`);
+      }
+
       callback({ success: true, room: roomService.roomToDTO(room) });
-      console.log(`[Room] ${socket.username} entrou na sala ${roomId}`);
     } catch (error) {
       console.error('Erro ao entrar em sala:', error);
       callback({ success: false, error: 'Erro ao entrar em sala' });
@@ -118,7 +134,7 @@ io.on('connection', async (socket: CustomSocket) => {
         roomService.deleteRoomIfEmpty(roomId);
       }
 
-      io.emit('rooms_updated', { rooms: roomService.getAvailableRoomsDTO() });
+      io.emit('rooms_updated', { rooms: roomService.getAllNonFinishedRoomsDTO() });
       callback?.({ success: true });
       console.log(`[Room] ${socket.username} saiu da sala ${roomId}`);
     } catch (error) {
@@ -129,7 +145,7 @@ io.on('connection', async (socket: CustomSocket) => {
 
   // --- list_rooms ---
   socket.on('list_rooms', (callback) => {
-    callback({ rooms: roomService.getAvailableRoomsDTO() });
+    callback({ rooms: roomService.getAllNonFinishedRoomsDTO() });
   });
 
   // --- get_room ---
@@ -288,7 +304,7 @@ io.on('connection', async (socket: CustomSocket) => {
         setTimeout(() => {
           gameService.endGame(roomId);
           roomService.updateRoomStatus(roomId, 'waiting');
-          io.emit('rooms_updated', { rooms: roomService.getAvailableRoomsDTO() });
+          io.emit('rooms_updated', { rooms: roomService.getAllNonFinishedRoomsDTO() });
         }, 5000);
       }
 
@@ -321,17 +337,79 @@ io.on('connection', async (socket: CustomSocket) => {
     }
   });
 
+  // --- request_game_state ---
+  socket.on('request_game_state', async (data: { roomId: string }, callback) => {
+    try {
+      const { roomId } = data;
+      const room = roomService.getRoomById(roomId);
+      const game = gameService.getGameByRoomId(roomId);
+
+      if (!room || !game) return callback({ success: false, error: 'Sala ou jogo não encontrado' });
+      if (game.player1Id !== socket.userId && game.player2Id !== socket.userId) {
+        return callback({ success: false, error: 'Você não está neste jogo' });
+      }
+
+      const characters = await gameService.getCharactersByTheme(room.themeId);
+      const mySecretCharacterId = socket.userId === game.player1Id
+        ? game.player1SecretCharacterId
+        : game.player2SecretCharacterId;
+
+      const player1Username = room.players.find(p => p.id === game.player1Id)?.username || 'Jogador 1';
+      const player2Username = room.players.find(p => p.id === game.player2Id)?.username || 'Jogador 2';
+      const currentTurnUsername = room.players.find(p => p.id === game.currentTurnPlayerId)?.username || 'Jogador';
+
+      const isMyTurn = game.currentTurnPlayerId === socket.userId;
+      let pendingQuestionText: string | null = null;
+      if (game.waitingForAnswer && game.pendingQuestion && game.pendingQuestion.askedBy !== socket.userId) {
+        pendingQuestionText = game.pendingQuestion.content;
+      }
+
+      // Converte askedBy (ID) para username para consistência com o frontend
+      const questionsWithUsername = game.questions.map(q => ({
+        ...q,
+        askedBy: q.askedBy === game.player1Id ? player1Username : player2Username,
+      }));
+
+      socket.emit('game_state_restored', {
+        roomId,
+        player1Id: game.player1Id,
+        player1Username,
+        player2Id: game.player2Id,
+        player2Username,
+        currentTurnPlayerId: game.currentTurnPlayerId,
+        currentTurnUsername,
+        mySecretCharacterId,
+        themeId: room.themeId,
+        characters: characters.map((c: any) => ({ id: c.id, name: c.name, imageUrl: c.imageUrl })),
+        questions: questionsWithUsername,
+        isMyTurn,
+        hasAskedThisTurn: game.hasAskedThisTurn,
+        waitingForAnswer: game.waitingForAnswer,
+        pendingQuestion: pendingQuestionText,
+      });
+
+      callback({ success: true });
+      console.log(`[Game] Estado do jogo restaurado para ${socket.username} na sala ${roomId}`);
+    } catch (error) {
+      console.error('Erro ao restaurar estado do jogo:', error);
+      callback({ success: false, error: 'Erro ao restaurar estado do jogo' });
+    }
+  });
+
   // --- disconnect ---
   socket.on('disconnect', () => {
     console.log(`[Socket] Usuário ${socket.username} desconectado: ${socket.id}`);
     const allRooms = roomService.getAllRooms();
     for (const room of allRooms) {
       if (room.players.some(p => p.id === socket.userId)) {
-        roomService.leaveRoom(room.id, socket.userId!);
-        roomService.deleteRoomIfEmpty(room.id);
+        // Só remove o jogador se não houver jogo ativo — preserva para reconexão
+        if (!gameService.isGameActive(room.id)) {
+          roomService.leaveRoom(room.id, socket.userId!);
+          roomService.deleteRoomIfEmpty(room.id);
+        }
       }
     }
-    io.emit('rooms_updated', { rooms: roomService.getAvailableRoomsDTO() });
+    io.emit('rooms_updated', { rooms: roomService.getAllNonFinishedRoomsDTO() });
   });
 });
 

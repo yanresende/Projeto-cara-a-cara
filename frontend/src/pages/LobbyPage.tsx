@@ -121,29 +121,77 @@ export const LobbyPage: React.FC = () => {
         </div>
 
         <div className="rooms-section">
-          <h2>Salas Disponíveis ({rooms.length})</h2>
-          {rooms.length === 0 ? (
-            <p className="empty-message">Nenhuma sala disponível. Crie uma!</p>
-          ) : (
-            <div className="rooms-grid">
-              {rooms.map(room => (
-                <div key={room.id} className="room-card">
-                  <h3>{room.name}</h3>
-                  <p className="theme">Tema: {room.themeId}</p>
-                  <p className="players">
-                    Jogadores: {room.playerCount}/{room.maxPlayers}
-                  </p>
-                  <Button
-                    size="small"
-                    onClick={() => handleJoinRoom(room.id)}
-                    disabled={room.playerCount >= room.maxPlayers}
-                  >
-                    Entrar na Sala
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
+          {(() => {
+            const waitingRooms = rooms.filter(r => r.status === 'waiting');
+            const playingRooms = rooms.filter(r => r.status === 'playing');
+            const myActiveRoom = playingRooms.find(r => r.playerIds?.includes(user?.id || ''));
+
+            return (
+              <>
+                {myActiveRoom && (
+                  <div className="active-game-banner">
+                    <span>Você tem uma partida em andamento: <strong>{myActiveRoom.name}</strong></span>
+                    <Button size="small" onClick={() => navigate(`/room/${myActiveRoom.id}`)}>
+                      Voltar para a Partida
+                    </Button>
+                  </div>
+                )}
+
+                <h2>Salas Disponíveis ({waitingRooms.length})</h2>
+                {waitingRooms.length === 0 ? (
+                  <p className="empty-message">Nenhuma sala disponível. Crie uma!</p>
+                ) : (
+                  <div className="rooms-grid">
+                    {waitingRooms.map(room => (
+                      <div key={room.id} className="room-card">
+                        <h3>{room.name}</h3>
+                        <p className="theme">Tema: {room.themeId}</p>
+                        <p className="players">
+                          Jogadores: {room.playerCount}/{room.maxPlayers}
+                        </p>
+                        <Button
+                          size="small"
+                          onClick={() => handleJoinRoom(room.id)}
+                          disabled={room.playerCount >= room.maxPlayers}
+                        >
+                          Entrar na Sala
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {playingRooms.length > 0 && (
+                  <>
+                    <h2>Partidas em Andamento ({playingRooms.length})</h2>
+                    <div className="rooms-grid">
+                      {playingRooms.map(room => {
+                        const isMyGame = room.playerIds?.includes(user?.id || '');
+                        return (
+                          <div key={room.id} className={`room-card playing${isMyGame ? ' my-game' : ''}`}>
+                            <h3>{room.name}</h3>
+                            <p className="theme">Tema: {room.themeId}</p>
+                            <p className="players">
+                              Jogadores: {room.playerCount}/{room.maxPlayers}
+                            </p>
+                            {isMyGame ? (
+                              <Button size="small" onClick={() => navigate(`/room/${room.id}`)}>
+                                Reconectar
+                              </Button>
+                            ) : (
+                              <Button size="small" disabled>
+                                Em andamento
+                              </Button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
     </div>

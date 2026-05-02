@@ -132,12 +132,48 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       setIsLoading(false);
     };
 
+    const handleGameStateRestored = (data: any) => {
+      const mySecret = data.characters.find((c: Character) => c.id === data.mySecretCharacterId) || null;
+
+      setGameState({
+        player1Id: data.player1Id,
+        player2Id: data.player2Id,
+        currentTurnPlayerId: data.currentTurnPlayerId,
+        currentTurnUsername: data.currentTurnUsername,
+      });
+      setCharacters(data.characters || []);
+      setMySecretCharacter(mySecret);
+      setQuestions(data.questions || []);
+      setEliminatedCharacters(new Set());
+      setGameEnded(false);
+      setIsLoading(false);
+      setError(null);
+      setGuessResult(null);
+
+      // Reconstrói a fase de turno a partir do estado do servidor
+      if (data.isMyTurn) {
+        if (data.waitingForAnswer) {
+          setTurnPhase('my_turn_wait_answer');
+        } else if (data.hasAskedThisTurn) {
+          setTurnPhase('my_turn_after_answer');
+        } else {
+          setTurnPhase('my_turn_ask');
+        }
+      } else if (data.pendingQuestion) {
+        setPendingQuestion(data.pendingQuestion);
+        setTurnPhase('opponent_asking_me');
+      } else {
+        setTurnPhase('opponent_turn');
+      }
+    };
+
     const handleError = (data: any) => {
       setError(data.message || 'Erro no jogo');
       setIsLoading(false);
     };
 
     socketService.on('game_started', handleGameStarted);
+    socketService.on('game_state_restored', handleGameStateRestored);
     socketService.on('turn_changed', handleTurnChanged);
     socketService.on('question_pending', handleQuestionPending);
     socketService.on('question_answered', handleQuestionAnswered);
@@ -148,6 +184,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
 
     return () => {
       socketService.off('game_started', handleGameStarted);
+      socketService.off('game_state_restored', handleGameStateRestored);
       socketService.off('turn_changed', handleTurnChanged);
       socketService.off('question_pending', handleQuestionPending);
       socketService.off('question_answered', handleQuestionAnswered);

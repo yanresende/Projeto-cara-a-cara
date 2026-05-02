@@ -125,3 +125,34 @@
 .room-card button {
   width: 100%;
 }
+
+.room-card.playing {
+  border-color: #f59e0b;
+  background-color: #fffbeb;
+}
+
+.room-card.my-game {
+  border-color: #10b981;
+  background-color: #f0fdf4;
+}
+
+.rooms-section h2 + .rooms-grid {
+  margin-bottom: 32px;
+}
+
+.active-game-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 16px 20px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.active-game-banner span {
+  font-size: 15px;
+}

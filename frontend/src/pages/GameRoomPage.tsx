@@ -98,6 +98,18 @@ export const GameRoomPage: React.FC = () => {
     if (gameState) setGameStarted(true);
   }, [gameState]);
 
+  // Quando entra em sala com jogo em andamento, solicita restauração do estado
+  useEffect(() => {
+    if (!room || !roomId) return;
+    if (room.status === 'playing' && !gameStarted) {
+      socketService.emit('request_game_state', { roomId }, (response: any) => {
+        if (!response.success) {
+          console.error('[GameRoom] Falha ao restaurar estado do jogo:', response.error);
+        }
+      });
+    }
+  }, [room?.status, gameStarted, roomId]);
+
   useEffect(() => {
     if (gameEnded) setShowResult(true);
   }, [gameEnded]);
@@ -268,20 +280,29 @@ export const GameRoomPage: React.FC = () => {
       {!gameStarted ? (
         <div className="game-waiting">
           <div className="waiting-content">
-            <h2>Aguardando Início do Jogo</h2>
-            <p>Jogadores: {room.players.length}/{room.maxPlayers}</p>
-            {room.players.map(p => (
-              <div key={p.id} className="player-item">
-                ✓ {p.username}
-              </div>
-            ))}
-            {room.players.length === 2 && (
-              <Button onClick={handleStartGame} size="large" isLoading={isLoading}>
-                Começar Jogo
-              </Button>
-            )}
-            {room.players.length < 2 && (
-              <p className="action-hint">Aguardando mais um jogador entrar...</p>
+            {room.status === 'playing' ? (
+              <>
+                <h2>Restaurando Partida...</h2>
+                <p className="action-hint">Reconectando ao jogo em andamento</p>
+              </>
+            ) : (
+              <>
+                <h2>Aguardando Início do Jogo</h2>
+                <p>Jogadores: {room.players.length}/{room.maxPlayers}</p>
+                {room.players.map(p => (
+                  <div key={p.id} className="player-item">
+                    ✓ {p.username}
+                  </div>
+                ))}
+                {room.players.length === 2 && (
+                  <Button onClick={handleStartGame} size="large" isLoading={isLoading}>
+                    Começar Jogo
+                  </Button>
+                )}
+                {room.players.length < 2 && (
+                  <p className="action-hint">Aguardando mais um jogador entrar...</p>
+                )}
+              </>
             )}
           </div>
         </div>

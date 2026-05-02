@@ -72,6 +72,7 @@ export class RoomService {
       name: room.name,
       themeId: room.themeId,
       playerCount: room.players.length,
+      playerIds: room.players.map(p => p.id),
       maxPlayers: room.maxPlayers,
       createdAt: room.createdAt,
       status: room.status,
@@ -80,6 +81,12 @@ export class RoomService {
 
   getAvailableRoomsDTO(): RoomWithoutPassword[] {
     return this.getAvailableRooms().map(room => this.roomToDTO(room));
+  }
+
+  getAllNonFinishedRoomsDTO(): RoomWithoutPassword[] {
+    return Array.from(this.rooms.values())
+      .filter(room => room.status !== 'finished')
+      .map(room => this.roomToDTO(room));
   }
 }
 

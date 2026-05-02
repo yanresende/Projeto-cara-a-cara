@@ -30,6 +30,7 @@ export interface RoomWithoutPassword {
   name: string;
   themeId: string;
   playerCount: number;
+  playerIds: string[];
   maxPlayers: number;
   createdAt: Date;
   status: GameStatus;

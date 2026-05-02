@@ -8,8 +8,8 @@ export interface CustomSocket extends Socket {
 
 export interface ServerToClientEvents {
   rooms_updated: (data: { rooms: RoomWithoutPassword[] }) => void;
-  player_joined: (data: { roomId: string; playerCount: number; username: string }) => void;
-  player_left: (data: { roomId: string; playerCount: number }) => void;
+  player_joined: (data: { roomId: string; userId: string; username: string; playerCount: number }) => void;
+  player_left: (data: { roomId: string; userId: string; playerCount: number }) => void;
   error: (data: { message: string }) => void;
   game_started: (data: { roomId: string; questionerId: string; questionerUsername: string; thinkerId: string; thinkerUsername: string; themeId: string; characters: any[] }) => void;
   game_state_updated: (data: { game: GameRound; currentQuestionerId: string }) => void;
@@ -24,6 +24,7 @@ export interface ClientToServerEvents {
   join_room: (data: { roomId: string }, callback: (response: any) => void) => void;
   leave_room: (data: { roomId: string }, callback: (response: any) => void) => void;
   list_rooms: (callback: (response: { rooms: RoomWithoutPassword[] }) => void) => void;
+  get_room: (data: { roomId: string }, callback: (response: any) => void) => void;
   start_game: (data: { roomId: string }, callback: (response: any) => void) => void;
   submit_question: (data: { roomId: string; question: string }, callback: (response: any) => void) => void;
   submit_guess: (data: { roomId: string; characterId: string }, callback: (response: any) => void) => void;

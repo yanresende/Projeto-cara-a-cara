@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import authRouter from './routes/auth';
 import themesRouter from './routes/themes';
 import rankingRouter from './routes/ranking';
+import adminRouter from './routes/admin';
 import { roomService } from './services/roomService';
 import { gameService } from './services/gameService';
 import { socketAuthMiddleware } from './middleware/socketAuth';
@@ -35,6 +36,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRouter);
 app.use('/api/themes', themesRouter);
+app.use('/api/admin', adminRouter);
 
 io.use(socketAuthMiddleware);
 

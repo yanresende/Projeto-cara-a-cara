@@ -16,6 +16,6 @@ export function authMiddleware(req: AuthRequest, res: Response, next: NextFuncti
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 
-  req.user = { id: payload.userId };
+  req.user = { id: payload.userId, isAdmin: payload.isAdmin === true };
   next();
 }

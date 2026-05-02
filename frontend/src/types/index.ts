@@ -5,6 +5,7 @@ export interface UserProfile {
   score: number;
   gamesPlayed: number;
   gamesWon: number;
+  isAdmin?: boolean;
 }
 
 export type GameStatus = 'waiting' | 'starting' | 'playing' | 'finished';

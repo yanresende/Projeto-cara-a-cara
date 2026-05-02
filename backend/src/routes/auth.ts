@@ -43,10 +43,11 @@ router.post('/signup', async (req, res): Promise<void> => {
       data: { username, passwordHash }
     });
 
-    const token = generateToken(user.id);
-    const response: AuthResponse = {
+    const isAdmin = process.env.ADMIN_USERNAME ? user.username === process.env.ADMIN_USERNAME : false;
+    const token = generateToken(user.id, isAdmin);
+    const response = {
       token,
-      user: { id: user.id, username: user.username }
+      user: { id: user.id, username: user.username, isAdmin }
     };
 
     res.status(201).json(response);
@@ -83,10 +84,11 @@ router.post('/login', async (req, res): Promise<void> => {
       return;
     }
 
-    const token = generateToken(user.id);
-    const response: AuthResponse = {
+    const isAdmin = process.env.ADMIN_USERNAME ? user.username === process.env.ADMIN_USERNAME : false;
+    const token = generateToken(user.id, isAdmin);
+    const response = {
       token,
-      user: { id: user.id, username: user.username }
+      user: { id: user.id, username: user.username, isAdmin }
     };
 
     res.json(response);

@@ -3,11 +3,13 @@ import { Request } from 'express';
 export interface AuthRequest extends Request {
   user?: {
     id: string;
+    isAdmin: boolean;
   };
 }
 
 export interface AuthPayload {
   userId: string;
+  isAdmin?: boolean;
 }
 
 export interface AuthResponse {

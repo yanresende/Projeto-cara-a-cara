@@ -29,7 +29,6 @@ export const prisma: any = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
-// --- Rotas da API REST ---
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'API do Cara a Cara está rodando!' });
 });
@@ -37,46 +36,37 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/themes', themesRouter);
 
-// --- Socket.IO Middleware ---
 io.use(socketAuthMiddleware);
 
-// --- Socket.IO Connection ---
+// Helper: encontra o socket de um jogador específico na sala
+async function getPlayerSocket(roomId: string, userId: string) {
+  const sockets = await io.in(roomId).fetchSockets();
+  return sockets.find(s => (s as any).userId === userId);
+}
+
 io.on('connection', async (socket: CustomSocket) => {
   console.log(`[Socket] Usuário ${socket.userId} conectado: ${socket.id}`);
 
-  // Buscar username do banco de dados
   try {
     const user = await prisma.user.findUnique({ where: { id: socket.userId } });
-    if (user) {
-      socket.username = user.username;
-    }
+    if (user) socket.username = user.username;
   } catch (error) {
     console.error('Erro ao buscar usuário:', error);
   }
 
-  // Emit salas disponíveis ao conectar
   socket.emit('rooms_updated', { rooms: roomService.getAvailableRoomsDTO() });
 
-  // --- Evento: create_room ---
+  // --- create_room ---
   socket.on('create_room', async (data, callback) => {
     try {
       const { themeId, roomName } = data;
-
-      // Validar se tema existe
       const theme = await prisma.theme.findUnique({ where: { id: themeId } });
-      if (!theme) {
-        return callback({ success: false, error: 'Tema não encontrado' });
-      }
+      if (!theme) return callback({ success: false, error: 'Tema não encontrado' });
 
-      // Criar sala
       const room = roomService.createRoom(themeId, roomName, socket.userId!, socket.username || 'Anônimo');
       socket.join(room.id);
-
-      // Notificar todos sobre salas atualizadas
       io.emit('rooms_updated', { rooms: roomService.getAvailableRoomsDTO() });
-
-      const response = { success: true, roomId: room.id, room: roomService.roomToDTO(room) };
-      callback(response);
+      callback({ success: true, roomId: room.id, room: roomService.roomToDTO(room) });
       console.log(`[Room] Sala criada: ${room.id} por ${socket.username}`);
     } catch (error) {
       console.error('Erro ao criar sala:', error);
@@ -84,33 +74,25 @@ io.on('connection', async (socket: CustomSocket) => {
     }
   });
 
-  // --- Evento: join_room ---
+  // --- join_room ---
   socket.on('join_room', (data, callback) => {
     try {
       const { roomId } = data;
-
       const room = roomService.getRoomById(roomId);
-      if (!room) {
-        return callback({ success: false, error: 'Sala não encontrada' });
-      }
+      if (!room) return callback({ success: false, error: 'Sala não encontrada' });
 
       if (!roomService.joinRoom(roomId, socket.userId!, socket.username || 'Anônimo')) {
         return callback({ success: false, error: 'Não foi possível entrar na sala' });
       }
 
       socket.join(roomId);
-
-      // Notificar todos sobre salas atualizadas
       io.emit('rooms_updated', { rooms: roomService.getAvailableRoomsDTO() });
-
-      // Notificar a sala que um jogador entrou
       io.to(roomId).emit('player_joined', {
         roomId,
-        userId: socket.userId,
+        userId: socket.userId!,
         username: socket.username || 'Anônimo',
         playerCount: room.players.length,
       });
-
       callback({ success: true, room: roomService.roomToDTO(room) });
       console.log(`[Room] ${socket.username} entrou na sala ${roomId}`);
     } catch (error) {
@@ -119,30 +101,24 @@ io.on('connection', async (socket: CustomSocket) => {
     }
   });
 
-  // --- Evento: leave_room ---
+  // --- leave_room ---
   socket.on('leave_room', (data, callback) => {
     try {
       const { roomId } = data;
-
       roomService.leaveRoom(roomId, socket.userId!);
       socket.leave(roomId);
 
-      // Notificar a sala que um jogador saiu
       const room = roomService.getRoomById(roomId);
       if (room) {
         io.to(roomId).emit('player_left', {
           roomId,
-          userId: socket.userId,
+          userId: socket.userId!,
           playerCount: room.players.length,
         });
-
-        // Deletar sala se estiver vazia
         roomService.deleteRoomIfEmpty(roomId);
       }
 
-      // Notificar todos sobre salas atualizadas
       io.emit('rooms_updated', { rooms: roomService.getAvailableRoomsDTO() });
-
       callback?.({ success: true });
       console.log(`[Room] ${socket.username} saiu da sala ${roomId}`);
     } catch (error) {
@@ -151,167 +127,203 @@ io.on('connection', async (socket: CustomSocket) => {
     }
   });
 
-  // --- Evento: list_rooms ---
+  // --- list_rooms ---
   socket.on('list_rooms', (callback) => {
     callback({ rooms: roomService.getAvailableRoomsDTO() });
   });
 
-  // --- Evento: get_room ---
+  // --- get_room ---
   socket.on('get_room', (data: { roomId: string }, callback) => {
     const room = roomService.getRoomById(data.roomId);
-    if (!room) {
-      return callback({ success: false, error: 'Sala não encontrada' });
-    }
-    callback({
-      success: true,
-      room: { ...roomService.roomToDTO(room), players: room.players },
-    });
+    if (!room) return callback({ success: false, error: 'Sala não encontrada' });
+    callback({ success: true, room: { ...roomService.roomToDTO(room), players: room.players } });
   });
 
-  // --- Evento: start_game ---
+  // --- start_game ---
   socket.on('start_game', async (data, callback) => {
     try {
       const { roomId } = data;
-
       const room = roomService.getRoomById(roomId);
-      if (!room) {
-        return callback({ success: false, error: 'Sala não encontrada' });
-      }
+      if (!room) return callback({ success: false, error: 'Sala não encontrada' });
+      if (room.players.length !== 2) return callback({ success: false, error: 'A sala precisa ter 2 jogadores' });
+      if (gameService.isGameActive(roomId)) return callback({ success: false, error: 'Já há um jogo ativo nessa sala' });
 
-      if (room.players.length !== 2) {
-        return callback({ success: false, error: 'A sala precisa ter 2 jogadores' });
-      }
-
-      if (gameService.isGameActive(roomId)) {
-        return callback({ success: false, error: 'Já há um jogo ativo nessa sala' });
-      }
-
-      // Start game
-      const game = await gameService.startGame(
-        roomId,
-        room.themeId,
-        room.players[0].id,
-        room.players[1].id
-      );
-
-      // Update room status
+      const game = await gameService.startGame(roomId, room.themeId, room.players[0].id, room.players[1].id);
       roomService.updateRoomStatus(roomId, 'playing');
 
-      // Fetch characters for UI
       const characters = await gameService.getCharactersByTheme(room.themeId);
+      const player1Username = room.players.find(p => p.id === game.player1Id)?.username || 'Jogador 1';
+      const player2Username = room.players.find(p => p.id === game.player2Id)?.username || 'Jogador 2';
+      const firstTurnUsername = game.currentTurnPlayerId === game.player1Id ? player1Username : player2Username;
 
-      // Emit game_started to room
-      io.to(roomId).emit('game_started', {
-        roomId,
-        questionerId: game.questionerPlayerId,
-        questionerUsername: room.players.find(p => p.id === game.questionerPlayerId)?.username || 'Jogador',
-        thinkerId: game.thinkerPlayerId,
-        thinkerUsername: room.players.find(p => p.id === game.thinkerPlayerId)?.username || 'Jogador',
-        themeId: room.themeId,
-        characters: characters.map(c => ({ id: c.id, name: c.name, imageUrl: c.imageUrl })),
+      // Emite game_started individualmente para cada socket com o seu próprio personagem secreto
+      const roomSockets = await io.in(roomId).fetchSockets();
+      for (const sock of roomSockets) {
+        const sockUserId = (sock as any).userId as string;
+        const mySecretCharacterId = sockUserId === game.player1Id
+          ? game.player1SecretCharacterId
+          : game.player2SecretCharacterId;
+
+        sock.emit('game_started', {
+          roomId,
+          player1Id: game.player1Id,
+          player1Username,
+          player2Id: game.player2Id,
+          player2Username,
+          firstTurnPlayerId: game.currentTurnPlayerId,
+          mySecretCharacterId,
+          themeId: room.themeId,
+          characters: characters.map(c => ({ id: c.id, name: c.name, imageUrl: c.imageUrl })),
+        });
+      }
+
+      // Notifica quem começa o turno
+      io.to(roomId).emit('turn_changed', {
+        currentTurnPlayerId: game.currentTurnPlayerId,
+        currentTurnUsername: firstTurnUsername,
       });
 
-      callback({ success: true, game });
-      console.log(`[Game] Jogo iniciado em sala ${roomId}`);
+      callback({ success: true });
+      console.log(`[Game] Jogo iniciado em sala ${roomId}. Primeiro turno: ${firstTurnUsername}`);
     } catch (error) {
       console.error('Erro ao iniciar jogo:', error);
       callback({ success: false, error: 'Erro ao iniciar jogo' });
     }
   });
 
-  // --- Evento: submit_question ---
+  // --- submit_question ---
   socket.on('submit_question', async (data, callback) => {
     try {
       const { roomId, question } = data;
-
       if (!question || question.trim().length === 0) {
         return callback({ success: false, error: 'Pergunta não pode estar vazia' });
       }
 
+      const result = gameService.submitQuestion(roomId, question.trim(), socket.userId!);
+
+      // Notifica o adversário que precisa responder
       const game = gameService.getGameByRoomId(roomId);
-      if (!game || game.completed) {
-        return callback({ success: false, error: 'Nenhum jogo ativo nessa sala' });
+      if (game) {
+        const opponentId = game.player1Id === socket.userId ? game.player2Id : game.player1Id;
+        const opponentSocket = await getPlayerSocket(roomId, opponentId);
+        opponentSocket?.emit('question_pending', {
+          question: result.question,
+          askedByUsername: socket.username || 'Adversário',
+        });
       }
 
-      if (game.questionerPlayerId !== socket.userId) {
-        return callback({ success: false, error: 'Apenas o questionador pode fazer perguntas' });
-      }
-
-      const result = await gameService.submitQuestion(roomId, question, socket.userId!);
-
-      // Emit to room
-      io.to(roomId).emit('question_submitted', {
-        question: result.question,
-        answer: result.answer,
-        questionerUsername: socket.username,
-      });
-
-      callback({ success: true, answer: result.answer });
-      console.log(`[Game] Pergunta em sala ${roomId}: "${question}" → ${result.answer}`);
-    } catch (error) {
+      callback({ success: true });
+      console.log(`[Game] Pergunta em sala ${roomId}: "${question}"`);
+    } catch (error: any) {
       console.error('Erro ao submeter pergunta:', error);
-      callback({ success: false, error: 'Erro ao submeter pergunta' });
+      callback({ success: false, error: error.message || 'Erro ao enviar pergunta' });
     }
   });
 
-  // --- Evento: submit_guess ---
+  // --- answer_question ---
+  socket.on('answer_question', (data, callback) => {
+    try {
+      const { roomId, answer } = data;
+
+      const q = gameService.answerQuestion(roomId, answer, socket.userId!);
+
+      const game = gameService.getGameByRoomId(roomId);
+      const askedByUsername = game
+        ? (game.player1Id === q.askedBy
+          ? roomService.getRoomById(roomId)?.players.find(p => p.id === game.player1Id)?.username
+          : roomService.getRoomById(roomId)?.players.find(p => p.id === game.player2Id)?.username)
+        : 'Jogador';
+
+      io.to(roomId).emit('question_answered', {
+        question: q.content,
+        answer: q.answer,
+        askedByUsername: askedByUsername || 'Jogador',
+      });
+
+      callback({ success: true });
+      console.log(`[Game] Resposta em sala ${roomId}: "${q.content}" → ${answer}`);
+    } catch (error: any) {
+      console.error('Erro ao responder pergunta:', error);
+      callback({ success: false, error: error.message || 'Erro ao responder' });
+    }
+  });
+
+  // --- submit_guess ---
   socket.on('submit_guess', async (data, callback) => {
     try {
       const { roomId, characterId } = data;
 
-      const game = gameService.getGameByRoomId(roomId);
-      if (!game || game.completed) {
-        return callback({ success: false, error: 'Nenhum jogo ativo nessa sala' });
-      }
-
-      if (game.thinkerPlayerId !== socket.userId) {
-        return callback({ success: false, error: 'Apenas o adivinhador pode fazer adivinhações' });
-      }
-
       const result = await gameService.submitGuess(roomId, characterId, socket.userId!);
-      const character = await gameService.getSecretCharacter(characterId);
+      const room = roomService.getRoomById(roomId);
+      const winnerUsername = room?.players.find(p => {
+        const game = gameService.getGameByRoomId(roomId);
+        return p.id === game?.winner;
+      })?.username || 'Jogador';
 
-      if (result.correct) {
-        // Game ended - update room status
-        roomService.updateRoomStatus(roomId, 'finished');
+      const game = gameService.getGameByRoomId(roomId);
 
+      io.to(roomId).emit('guess_result', {
+        characterName: result.characterName,
+        opponentSecretName: result.opponentSecretName,
+        isCorrect: result.correct,
+        message: result.correct
+          ? `${socket.username} acertou! Era ${result.characterName}!`
+          : `${socket.username} errou! Não era ${result.characterName}. O personagem correto era ${result.opponentSecretName}.`,
+        winnerId: game?.winner || '',
+        winnerUsername,
+      });
+
+      if (game?.completed) {
         io.to(roomId).emit('game_ended', {
-          winnerId: socket.userId,
-          winnerUsername: socket.username,
-          message: `${socket.username} acertou! Era ${character.name}!`,
+          winnerId: game.winner || '',
+          winnerUsername,
+          message: result.correct
+            ? `${socket.username} adivinhou e venceu!`
+            : `${socket.username} errou a adivinhação e perdeu!`,
         });
 
-        console.log(`[Game] Sala ${roomId} finalizada. Vencedor: ${socket.username}`);
+        roomService.updateRoomStatus(roomId, 'finished');
+        console.log(`[Game] Sala ${roomId} finalizada. Vencedor: ${winnerUsername}`);
 
-        // Reset room after 3 seconds
         setTimeout(() => {
           gameService.endGame(roomId);
           roomService.updateRoomStatus(roomId, 'waiting');
           io.emit('rooms_updated', { rooms: roomService.getAvailableRoomsDTO() });
-        }, 3000);
-
-        callback({ success: true, correct: true, message: 'Você acertou!' });
-      } else {
-        io.to(roomId).emit('guess_result', {
-          characterName: character.name,
-          isCorrect: false,
-          message: `Errado! Não era ${character.name}. Continue tentando!`,
-        });
-
-        callback({ success: true, correct: false, message: 'Errado, tente de novo!' });
-        console.log(`[Game] Adivinhação errada em sala ${roomId}: ${character.name}`);
+        }, 5000);
       }
-    } catch (error) {
+
+      callback({ success: true, correct: result.correct });
+    } catch (error: any) {
       console.error('Erro ao submeter adivinhação:', error);
-      callback({ success: false, error: 'Erro ao submeter adivinhação' });
+      callback({ success: false, error: error.message || 'Erro ao adivinhar' });
     }
   });
 
-  // --- Evento: disconnect ---
+  // --- end_turn ---
+  socket.on('end_turn', (data, callback) => {
+    try {
+      const { roomId } = data;
+
+      const result = gameService.endTurn(roomId, socket.userId!);
+      const room = roomService.getRoomById(roomId);
+      const nextTurnUsername = room?.players.find(p => p.id === result.nextTurnPlayerId)?.username || 'Jogador';
+
+      io.to(roomId).emit('turn_changed', {
+        currentTurnPlayerId: result.nextTurnPlayerId,
+        currentTurnUsername: nextTurnUsername,
+      });
+
+      callback({ success: true });
+      console.log(`[Game] Turno finalizado em sala ${roomId}. Próximo turno: ${nextTurnUsername}`);
+    } catch (error: any) {
+      console.error('Erro ao finalizar turno:', error);
+      callback({ success: false, error: error.message || 'Erro ao finalizar turno' });
+    }
+  });
+
+  // --- disconnect ---
   socket.on('disconnect', () => {
     console.log(`[Socket] Usuário ${socket.username} desconectado: ${socket.id}`);
-    // Nota: Socket.IO remove automaticamente o socket de todas as rooms
-    // mas precisamos limpar o RoomService
     const allRooms = roomService.getAllRooms();
     for (const room of allRooms) {
       if (room.players.some(p => p.id === socket.userId)) {

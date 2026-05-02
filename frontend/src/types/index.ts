@@ -53,9 +53,14 @@ export interface GameRound {
   id: string;
   roomId: string;
   themeId: string;
-  questionerPlayerId: string;
-  thinkerPlayerId: string;
-  secretCharacterId: string;
+  player1Id: string;
+  player2Id: string;
+  player1SecretCharacterId: string;
+  player2SecretCharacterId: string;
+  currentTurnPlayerId: string;
+  hasAskedThisTurn: boolean;
+  pendingQuestion: { content: string; askedBy: string } | null;
+  waitingForAnswer: boolean;
   questions: Question[];
   guesses: Guess[];
   completed: boolean;

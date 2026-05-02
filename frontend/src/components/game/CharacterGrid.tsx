@@ -1,52 +1,43 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { CharacterCard } from './CharacterCard';
-import { Button } from '../common/Button';
 import type { Character } from '../../types/index';
 import './GameComponents.css';
 
 interface CharacterGridProps {
   characters: Character[];
-  onGuess: (characterId: string) => void;
+  eliminatedCharacters: Set<string>;
+  onCardClick: (characterId: string) => void;
+  guessingMode?: boolean;
+  interactive?: boolean;
   isLoading?: boolean;
-  disabled?: boolean;
 }
 
 export const CharacterGrid: React.FC<CharacterGridProps> = ({
   characters,
-  onGuess,
+  eliminatedCharacters,
+  onCardClick,
+  guessingMode = false,
+  interactive = false,
   isLoading = false,
-  disabled = false,
 }) => {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  const handleGuess = () => {
-    if (selectedId) {
-      onGuess(selectedId);
-      setSelectedId(null);
-    }
-  };
-
   return (
     <div className="character-grid-container">
       <div className="character-grid">
-        {characters.map(char => (
-          <CharacterCard
-            key={char.id}
-            character={char}
-            isSelected={selectedId === char.id}
-            isDisabled={disabled}
-            onClick={() => setSelectedId(char.id)}
-          />
-        ))}
+        {characters.map(char => {
+          const isEliminated = eliminatedCharacters.has(char.id);
+          const isDisabled = isLoading || !interactive || (guessingMode && isEliminated);
+          return (
+            <CharacterCard
+              key={char.id}
+              character={char}
+              isEliminated={isEliminated}
+              isDisabled={isDisabled}
+              guessingMode={guessingMode && interactive}
+              onClick={() => onCardClick(char.id)}
+            />
+          );
+        })}
       </div>
-      <Button
-        onClick={handleGuess}
-        isLoading={isLoading}
-        disabled={disabled || !selectedId}
-        size="large"
-      >
-        Adivinhar {selectedId ? `(${characters.find(c => c.id === selectedId)?.name})` : ''}
-      </Button>
     </div>
   );
 };

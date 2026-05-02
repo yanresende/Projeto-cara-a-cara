@@ -6,29 +6,30 @@ export class GameService {
   private games: Map<string, GameRound> = new Map();
 
   async startGame(roomId: string, themeId: string, player1Id: string, player2Id: string): Promise<GameRound> {
-    // Fetch random character from theme
-    const characters = await prisma.character.findMany({
-      where: { themeId },
-    });
+    const characters = await prisma.character.findMany({ where: { themeId } });
 
-    if (characters.length === 0) {
-      throw new Error('No characters available for this theme');
+    if (characters.length < 2) {
+      throw new Error('O tema precisa ter pelo menos 2 personagens');
     }
 
-    const randomChar = characters[Math.floor(Math.random() * characters.length)];
+    const shuffled = [...characters].sort(() => Math.random() - 0.5);
+    const p1Secret = shuffled[0];
+    const p2Secret = shuffled[1];
 
-    // Randomly assign roles
-    const isPlayer1Questioner = Math.random() > 0.5;
-    const questionerPlayerId = isPlayer1Questioner ? player1Id : player2Id;
-    const thinkerPlayerId = isPlayer1Questioner ? player2Id : player1Id;
+    const firstTurnPlayerId = Math.random() > 0.5 ? player1Id : player2Id;
 
     const game: GameRound = {
       id: uuidv4(),
       roomId,
       themeId,
-      questionerPlayerId,
-      thinkerPlayerId,
-      secretCharacterId: randomChar.id,
+      player1Id,
+      player2Id,
+      player1SecretCharacterId: p1Secret.id,
+      player2SecretCharacterId: p2Secret.id,
+      currentTurnPlayerId: firstTurnPlayerId,
+      hasAskedThisTurn: false,
+      pendingQuestion: null,
+      waitingForAnswer: false,
       questions: [],
       guesses: [],
       completed: false,
@@ -39,128 +40,110 @@ export class GameService {
     return game;
   }
 
-  async submitQuestion(roomId: string, question: string, playerId: string): Promise<{ question: string; answer: 'sim' | 'nao' }> {
+  submitQuestion(roomId: string, question: string, playerId: string): { question: string } {
     const game = this.games.get(roomId);
-    if (!game || game.completed) {
-      throw new Error('No active game in this room');
-    }
+    if (!game || game.completed) throw new Error('Nenhum jogo ativo nessa sala');
+    if (game.currentTurnPlayerId !== playerId) throw new Error('Não é o seu turno');
+    if (game.hasAskedThisTurn) throw new Error('Você já fez sua pergunta neste turno');
+    if (game.waitingForAnswer) throw new Error('Aguardando resposta da pergunta anterior');
 
-    if (game.questionerPlayerId !== playerId) {
-      throw new Error('Only the questioner can ask questions');
-    }
+    game.pendingQuestion = { content: question, askedBy: playerId };
+    game.waitingForAnswer = true;
+    game.hasAskedThisTurn = true;
 
-    // Fetch the secret character to get its attributes
-    const character = await prisma.character.findUnique({
-      where: { id: game.secretCharacterId },
-    });
+    return { question };
+  }
 
-    if (!character) {
-      throw new Error('Character not found');
-    }
+  answerQuestion(roomId: string, answer: 'sim' | 'nao', playerId: string): Question {
+    const game = this.games.get(roomId);
+    if (!game || game.completed) throw new Error('Nenhum jogo ativo nessa sala');
+    if (!game.waitingForAnswer || !game.pendingQuestion) throw new Error('Nenhuma pergunta pendente');
 
-    // Parse character attributes and simulate answer
-    let attributes: any = {};
-    try {
-      attributes = JSON.parse(character.attributes || '{}');
-    } catch (e) {
-      attributes = {};
-    }
+    const opponentId = this.getOpponentId(game, game.pendingQuestion.askedBy);
+    if (playerId !== opponentId) throw new Error('Apenas o adversário pode responder');
 
-    // Simple keyword matching for answer
-    const lowerQuestion = question.toLowerCase();
-    let answer: 'sim' | 'nao' = 'nao';
-
-    // Check against attributes
-    if (lowerQuestion.includes('mamífero') && attributes.type === 'mamífero') answer = 'sim';
-    else if (lowerQuestion.includes('ave') && attributes.type === 'ave') answer = 'sim';
-    else if (lowerQuestion.includes('aquático') && attributes.type === 'aquático') answer = 'sim';
-    else if (lowerQuestion.includes('super-herói') && attributes.tipo === 'super-herói') answer = 'sim';
-    else if (lowerQuestion.includes('super-heroína') && attributes.tipo === 'super-heroína') answer = 'sim';
-    else if (lowerQuestion.includes('grande') && attributes.tamanho === 'grande') answer = 'sim';
-    else if (lowerQuestion.includes('pequeno') && attributes.tamanho === 'pequeno') answer = 'sim';
-    else if (lowerQuestion.includes('médio') && attributes.tamanho === 'médio') answer = 'sim';
-    else if (lowerQuestion.includes('preto') && attributes.cor === 'preto') answer = 'sim';
-    else if (lowerQuestion.includes('branco') && attributes.cor === 'branco') answer = 'sim';
-    else if (lowerQuestion.includes('amarelo') && attributes.cor === 'amarelo') answer = 'sim';
-    else if (lowerQuestion.includes('azul') && attributes.cor === 'azul') answer = 'sim';
-    else if (lowerQuestion.includes('vermelho') && attributes.cor === 'vermelho') answer = 'sim';
-    else if (lowerQuestion.includes('marrom') && attributes.cor === 'marrom') answer = 'sim';
-    else if (lowerQuestion.includes('roxo') && attributes.cor === 'roxo') answer = 'sim';
-    else if (lowerQuestion.includes('cinza') && attributes.cor === 'cinza') answer = 'sim';
-    else if (lowerQuestion.includes('uniforme') && attributes.uniforme === true) answer = 'sim';
-    else if (lowerQuestion.includes('saúde') && attributes.setor === 'saúde') answer = 'sim';
-    else if (lowerQuestion.includes('segurança') && attributes.setor === 'segurança') answer = 'sim';
-    else if (lowerQuestion.includes('espaço') && attributes.setor === 'espaço') answer = 'sim';
-    else if (lowerQuestion.includes('culinária') && attributes.setor === 'culinária') answer = 'sim';
-    else if (lowerQuestion.includes('aviação') && attributes.setor === 'aviação') answer = 'sim';
-    else {
-      // Default: random answer for unknown questions
-      answer = Math.random() > 0.5 ? 'sim' : 'nao';
-    }
-
-    // Store question
     const q: Question = {
       id: uuidv4(),
-      content: question,
-      askedBy: playerId,
+      content: game.pendingQuestion.content,
+      askedBy: game.pendingQuestion.askedBy,
       answer,
       createdAt: new Date(),
     };
 
     game.questions.push(q);
-    return { question, answer };
+    game.pendingQuestion = null;
+    game.waitingForAnswer = false;
+
+    return q;
   }
 
-  async submitGuess(roomId: string, characterId: string, playerId: string): Promise<{ correct: boolean; characterName?: string }> {
+  async submitGuess(roomId: string, characterId: string, playerId: string): Promise<{ correct: boolean; characterName: string; opponentSecretName: string }> {
     const game = this.games.get(roomId);
-    if (!game || game.completed) {
-      throw new Error('No active game in this room');
-    }
+    if (!game || game.completed) throw new Error('Nenhum jogo ativo nessa sala');
+    if (game.currentTurnPlayerId !== playerId) throw new Error('Não é o seu turno');
+    if (game.waitingForAnswer) throw new Error('Ainda aguardando resposta à pergunta');
 
-    if (game.thinkerPlayerId !== playerId) {
-      throw new Error('Only the thinker can make guesses');
-    }
+    const opponentSecretId = this.getOpponentSecretId(game, playerId);
+    const isCorrect = characterId === opponentSecretId;
 
-    // Fetch the guessed character
-    const guessedCharacter = await prisma.character.findUnique({
-      where: { id: characterId },
-    });
+    const guessedCharacter = await prisma.character.findUnique({ where: { id: characterId } });
+    const opponentSecret = await prisma.character.findUnique({ where: { id: opponentSecretId } });
 
-    if (!guessedCharacter) {
-      throw new Error('Character not found');
-    }
-
-    const isCorrect = characterId === game.secretCharacterId;
-
-    // Store guess
     const guess: Guess = {
       characterId,
       createdAt: new Date(),
       correct: isCorrect,
     };
-
     game.guesses.push(guess);
 
     if (isCorrect) {
       game.completed = true;
       game.winner = playerId;
-
-      // Persist game to database
-      await this.persistGame(game);
+    } else {
+      // Adivinhação errada: adversário vence
+      game.completed = true;
+      game.winner = this.getOpponentId(game, playerId);
     }
 
-    return { correct: isCorrect, characterName: guessedCharacter.name };
+    await this.persistGame(game);
+
+    return {
+      correct: isCorrect,
+      characterName: guessedCharacter?.name || '',
+      opponentSecretName: opponentSecret?.name || '',
+    };
+  }
+
+  endTurn(roomId: string, playerId: string): { nextTurnPlayerId: string } {
+    const game = this.games.get(roomId);
+    if (!game || game.completed) throw new Error('Nenhum jogo ativo nessa sala');
+    if (game.currentTurnPlayerId !== playerId) throw new Error('Não é o seu turno');
+    if (game.waitingForAnswer) throw new Error('Aguardando resposta antes de finalizar o turno');
+
+    game.currentTurnPlayerId = this.getOpponentId(game, playerId);
+    game.hasAskedThisTurn = false;
+
+    return { nextTurnPlayerId: game.currentTurnPlayerId };
+  }
+
+  private getOpponentId(game: GameRound, playerId: string): string {
+    return playerId === game.player1Id ? game.player2Id : game.player1Id;
+  }
+
+  private getOpponentSecretId(game: GameRound, playerId: string): string {
+    return playerId === game.player1Id
+      ? game.player2SecretCharacterId
+      : game.player1SecretCharacterId;
   }
 
   private async persistGame(game: GameRound): Promise<void> {
     try {
-      // Create game record in database
       await prisma.game.create({
         data: {
           themeId: game.themeId,
-          questionerId: game.questionerPlayerId,
-          thinkerId: game.thinkerPlayerId,
-          secretCharacterId: game.secretCharacterId,
+          questionerId: game.player1Id,
+          thinkerId: game.player2Id,
+          secretCharacterId: game.player1SecretCharacterId,
           questionCount: game.questions.length,
           winnerId: game.winner,
           guessList: {
@@ -172,27 +155,19 @@ export class GameService {
         },
       });
 
-      // Update user stats
       if (game.winner) {
+        const loserId = this.getOpponentId(game, game.winner);
         await prisma.user.update({
           where: { id: game.winner },
-          data: {
-            gamesWon: { increment: 1 },
-            gamesPlayed: { increment: 1 },
-          },
+          data: { gamesWon: { increment: 1 }, gamesPlayed: { increment: 1 } },
         });
-
-        // Update loser's games played
-        const loserId = game.winner === game.thinkerPlayerId ? game.questionerPlayerId : game.thinkerPlayerId;
         await prisma.user.update({
           where: { id: loserId },
-          data: {
-            gamesPlayed: { increment: 1 },
-          },
+          data: { gamesPlayed: { increment: 1 } },
         });
       }
     } catch (error) {
-      console.error('Error persisting game to database:', error);
+      console.error('Erro ao persistir jogo no banco de dados:', error);
     }
   }
 
@@ -210,15 +185,11 @@ export class GameService {
   }
 
   async getCharactersByTheme(themeId: string): Promise<any[]> {
-    return await prisma.character.findMany({
-      where: { themeId },
-    });
+    return await prisma.character.findMany({ where: { themeId } });
   }
 
-  async getSecretCharacter(characterId: string): Promise<any> {
-    return await prisma.character.findUnique({
-      where: { id: characterId },
-    });
+  async getCharacterById(characterId: string): Promise<any> {
+    return await prisma.character.findUnique({ where: { id: characterId } });
   }
 }
 

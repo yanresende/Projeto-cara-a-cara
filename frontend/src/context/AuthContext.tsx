@@ -8,6 +8,7 @@ interface AuthContextType {
   user: UserProfile | null;
   token: string | null;
   isLoading: boolean;
+  isInitializing: boolean;
   error: string | null;
   login: (payload: AuthPayload) => Promise<void>;
   signup: (payload: AuthPayload) => Promise<void>;
@@ -21,6 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Initialize from localStorage
@@ -36,6 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         socketService.connect(storedToken).catch(console.error);
       }
     }
+    setIsInitializing(false);
   }, []);
 
   const login = async (payload: AuthPayload) => {
@@ -47,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.user);
       saveToken(response.token);
       saveUser(response.user);
-      await socketService.connect(response.token);
+      socketService.connect(response.token).catch(console.error);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
       setError(message);
@@ -66,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.user);
       saveToken(response.token);
       saveUser(response.user);
-      await socketService.connect(response.token);
+      socketService.connect(response.token).catch(console.error);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Signup failed';
       setError(message);
@@ -83,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, error, login, signup, logout, setError }}>
+    <AuthContext.Provider value={{ user, token, isLoading, isInitializing, error, login, signup, logout, setError }}>
       {children}
     </AuthContext.Provider>
   );

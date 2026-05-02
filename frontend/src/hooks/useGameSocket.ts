@@ -118,8 +118,8 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     socketService.submitQuestion(roomId, question, (response: any) => {
       if (!response.success) {
         setError(response.error || 'Erro ao enviar pergunta');
-        setIsLoading(false);
       }
+      setIsLoading(false);
     });
   };
 
@@ -129,8 +129,8 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     socketService.submitGuess(roomId, characterId, (response: any) => {
       if (!response.success) {
         setError(response.error || 'Erro ao adivinhar');
-        setIsLoading(false);
       }
+      setIsLoading(false);
     });
   };
 

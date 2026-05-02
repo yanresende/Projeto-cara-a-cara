@@ -10,7 +10,11 @@ import { ProfilePage } from './pages/ProfilePage';
 import './App.css';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { token } = useAuth();
+  const { token, isInitializing } = useAuth();
+
+  if (isInitializing) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Carregando...</div>;
+  }
 
   if (!token) {
     return <Navigate to="/login" replace />;

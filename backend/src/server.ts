@@ -137,22 +137,30 @@ io.on('connection', async (socket: CustomSocket) => {
   socket.on('leave_room', (data, callback) => {
     try {
       const { roomId } = data;
-      roomService.leaveRoom(roomId, socket.userId!);
       socket.leave(roomId);
 
       const room = roomService.getRoomById(roomId);
-      if (room) {
-        io.to(roomId).emit('player_left', {
-          roomId,
-          userId: socket.userId!,
-          playerCount: room.players.length,
-        });
-        roomService.deleteRoomIfEmpty(roomId);
+
+      if (gameService.isGameActive(roomId)) {
+        // Jogo ativo: mantém o jogador em room.players para poder reconectar via lobby
+        // Apenas sai do socket.io room para não receber mais eventos em tempo real
+        io.emit('rooms_updated', { rooms: roomService.getAllNonFinishedRoomsDTO() });
+        console.log(`[Room] ${socket.username} saiu temporariamente da sala ${roomId} (jogo ativo)`);
+      } else {
+        roomService.leaveRoom(roomId, socket.userId!);
+        if (room) {
+          io.to(roomId).emit('player_left', {
+            roomId,
+            userId: socket.userId!,
+            playerCount: room.players.length,
+          });
+          roomService.deleteRoomIfEmpty(roomId);
+        }
+        io.emit('rooms_updated', { rooms: roomService.getAllNonFinishedRoomsDTO() });
+        console.log(`[Room] ${socket.username} saiu da sala ${roomId}`);
       }
 
-      io.emit('rooms_updated', { rooms: roomService.getAllNonFinishedRoomsDTO() });
       callback?.({ success: true });
-      console.log(`[Room] ${socket.username} saiu da sala ${roomId}`);
     } catch (error) {
       console.error('Erro ao sair de sala:', error);
       callback?.({ success: false, error: 'Erro ao sair de sala' });

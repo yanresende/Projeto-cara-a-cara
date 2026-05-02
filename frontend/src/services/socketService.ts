@@ -6,6 +6,19 @@ type SocketCallback = (data: any) => void;
 class SocketService {
   private socket: Socket | null = null;
   private listeners: Map<string, Set<SocketCallback>> = new Map();
+  private pendingConnectCallbacks: Array<() => void> = [];
+
+  waitForConnection(): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.isConnected()) {
+        resolve();
+      } else if (this.socket) {
+        this.socket.once('connect', () => resolve());
+      } else {
+        this.pendingConnectCallbacks.push(resolve);
+      }
+    });
+  }
 
   connect(token: string): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -20,6 +33,8 @@ class SocketService {
 
         this.socket.on('connect', () => {
           console.log('[Socket] Conectado ao servidor');
+          const pending = this.pendingConnectCallbacks.splice(0);
+          pending.forEach(cb => cb());
           resolve();
         });
 

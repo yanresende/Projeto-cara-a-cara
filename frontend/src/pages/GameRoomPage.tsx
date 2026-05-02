@@ -41,13 +41,34 @@ export const GameRoomPage: React.FC = () => {
       return;
     }
 
-    socketService.getRoom(roomId, (response) => {
-      if (response.success) {
+    let cancelled = false;
+
+    const loadRoom = () => {
+      if (cancelled) return;
+      socketService.getRoom(roomId, (response) => {
+        if (cancelled) return;
+        if (!response.success) {
+          navigate('/');
+          return;
+        }
         setRoom(response.room);
-      } else {
-        navigate('/');
-      }
-    });
+        const alreadyInRoom = user && response.room.players.some((p: { id: string }) => p.id === user.id);
+        if (!alreadyInRoom) {
+          socketService.joinRoom(roomId, (joinResponse) => {
+            if (cancelled) return;
+            if (!joinResponse.success) {
+              navigate('/');
+              return;
+            }
+            socketService.getRoom(roomId, (r) => {
+              if (!cancelled && r.success) setRoom(r.room);
+            });
+          });
+        }
+      });
+    };
+
+    socketService.waitForConnection().then(loadRoom);
 
     const handlePlayerJoined = (data: { roomId: string; userId: string; username: string }) => {
       if (data.roomId !== roomId) return;
@@ -65,14 +86,19 @@ export const GameRoomPage: React.FC = () => {
       });
     };
 
+    const handleReconnect = () => loadRoom();
+
     socketService.on('player_joined', handlePlayerJoined);
     socketService.on('player_left', handlePlayerLeft);
+    socketService.on('connect', handleReconnect);
 
     return () => {
+      cancelled = true;
       socketService.off('player_joined', handlePlayerJoined);
       socketService.off('player_left', handlePlayerLeft);
+      socketService.off('connect', handleReconnect);
     };
-  }, [roomId, navigate]);
+  }, [roomId, navigate, user]);
 
   useEffect(() => {
     if (game) {

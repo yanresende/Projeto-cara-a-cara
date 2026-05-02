@@ -83,6 +83,14 @@ export class RoomService {
     return this.getAvailableRooms().map(room => this.roomToDTO(room));
   }
 
+  rejoinRoom(roomId: string, userId: string, username: string): boolean {
+    const room = this.rooms.get(roomId);
+    if (!room) return false;
+    if (room.players.some(p => p.id === userId)) return false;
+    room.players.push({ id: userId, username, joinedAt: new Date() });
+    return true;
+  }
+
   getAllNonFinishedRoomsDTO(): RoomWithoutPassword[] {
     return Array.from(this.rooms.values())
       .filter(room => room.status !== 'finished')

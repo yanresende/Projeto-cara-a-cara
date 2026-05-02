@@ -38,6 +38,15 @@ export const LobbyPage: React.FC = () => {
     loadThemes();
   }, []);
 
+  // Busca a lista de salas ao montar — garante dados atualizados independente do timing do rooms_updated
+  useEffect(() => {
+    socketService.waitForConnection().then(() => {
+      socketService.listRooms((response: { rooms: Parameters<typeof setRooms>[0] }) => {
+        if (response.rooms) setRooms(response.rooms);
+      });
+    });
+  }, [setRooms]);
+
   useEffect(() => {
     const handleRoomsUpdated = (data: { rooms: Parameters<typeof setRooms>[0] }) => {
       setRooms(data.rooms);

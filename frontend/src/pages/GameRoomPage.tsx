@@ -50,20 +50,15 @@ export const GameRoomPage: React.FC = () => {
 
     const loadRoom = () => {
       if (cancelled) return;
-      socketService.getRoom(roomId, (response) => {
+      // Sempre chama joinRoom para garantir que o socket entre no room antes de qualquer ação
+      socketService.joinRoom(roomId, (joinResponse) => {
         if (cancelled) return;
-        if (!response.success) { navigate('/'); return; }
-        setRoom(response.room);
-        const alreadyIn = user && response.room.players.some((p: { id: string }) => p.id === user.id);
-        if (!alreadyIn) {
-          socketService.joinRoom(roomId, (joinResponse) => {
-            if (cancelled) return;
-            if (!joinResponse.success) { navigate('/'); return; }
-            socketService.getRoom(roomId, (r) => {
-              if (!cancelled && r.success) setRoom(r.room);
-            });
-          });
-        }
+        if (!joinResponse.success) { navigate('/'); return; }
+        socketService.getRoom(roomId, (response) => {
+          if (cancelled) return;
+          if (!response.success) { navigate('/'); return; }
+          setRoom(response.room);
+        });
       });
     };
 

@@ -89,15 +89,29 @@ io.on('connection', async (socket: CustomSocket) => {
 
       const alreadyInRoom = room.players.some(p => p.id === socket.userId);
 
+      // Verifica se o jogador é participante original de um jogo ativo nessa sala
+      const activeGame = gameService.getGameByRoomId(roomId);
+      const isOriginalPlayer = activeGame &&
+        (activeGame.player1Id === socket.userId || activeGame.player2Id === socket.userId);
+
       if (!alreadyInRoom) {
-        if (!roomService.joinRoom(roomId, socket.userId!, socket.username || 'Anônimo')) {
-          return callback({ success: false, error: 'Não foi possível entrar na sala' });
+        if (isOriginalPlayer) {
+          // Rejoin: re-adiciona o jogador original sem contar como novo slot
+          roomService.rejoinRoom(roomId, socket.userId!, socket.username || 'Anônimo');
+        } else {
+          // Bloqueia novos jogadores de entrarem em partidas já em andamento
+          if (room.status === 'playing') {
+            return callback({ success: false, error: 'Não é possível entrar em uma partida em andamento' });
+          }
+          if (!roomService.joinRoom(roomId, socket.userId!, socket.username || 'Anônimo')) {
+            return callback({ success: false, error: 'Não foi possível entrar na sala' });
+          }
         }
       }
 
       socket.join(roomId);
 
-      if (!alreadyInRoom) {
+      if (!alreadyInRoom && !isOriginalPlayer) {
         io.emit('rooms_updated', { rooms: roomService.getAllNonFinishedRoomsDTO() });
         io.to(roomId).emit('player_joined', {
           roomId,
@@ -106,6 +120,8 @@ io.on('connection', async (socket: CustomSocket) => {
           playerCount: room.players.length,
         });
         console.log(`[Room] ${socket.username} entrou na sala ${roomId}`);
+      } else if (!alreadyInRoom) {
+        console.log(`[Room] ${socket.username} rejuntou à sala ${roomId} (jogo ativo)`);
       } else {
         console.log(`[Room] ${socket.username} reconectou à sala ${roomId}`);
       }

@@ -56,6 +56,14 @@ export async function uploadCharacterImage(file: File, themeId: string): Promise
   return getDownloadURL(storageRef);
 }
 
+// Faz upload de um blob já cortado/comprimido pelo CropEditor
+export async function uploadCroppedImage(blob: Blob, themeId: string): Promise<string> {
+  const path = `characters/${themeId}/${Date.now()}.jpg`;
+  const storageRef = ref(storage, path);
+  await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' });
+  return getDownloadURL(storageRef);
+}
+
 export async function uploadThemeCover(file: File, themeId: string): Promise<string> {
   const compressed = await compressImage(file);
   const path = `themes/${themeId}/cover_${Date.now()}.jpg`;

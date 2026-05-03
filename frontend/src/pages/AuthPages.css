@@ -52,3 +52,17 @@
 .auth-footer a:hover {
   opacity: 0.8;
 }
+
+@media (max-width: 480px) {
+  .auth-header h1 {
+    font-size: 36px;
+  }
+
+  .auth-header p {
+    font-size: 15px;
+  }
+
+  .auth-header {
+    margin-bottom: 28px;
+  }
+}

@@ -233,7 +233,68 @@
 
   .player-roles {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .player-name {
+    font-size: 15px;
+  }
+
+  .question-input {
+    flex-direction: column;
+  }
+
+  .question-input button {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .game-result-modal {
+    padding: 28px 20px;
+  }
+
+  .result-header {
+    font-size: 24px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .character-grid {
+    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+    gap: 8px;
+  }
+
+  .character-name {
+    font-size: 11px;
+    padding: 4px 4px;
+  }
+
+  .player-roles {
+    padding: 12px;
+    margin-bottom: 14px;
+    border-radius: 10px;
+  }
+
+  .role-card {
+    padding: 12px;
+  }
+
+  .role-label {
+    font-size: 11px;
+  }
+
+  .question-history {
+    padding: 12px;
+  }
+
+  .question-item {
+    padding: 8px 10px;
+  }
+
+  .question-text {
+    font-size: 13px;
   }
 }
 
@@ -332,7 +393,7 @@
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   }
 
-  .question-history {
-    max-height: 200px;
+  .questions-list {
+    max-height: 180px;
   }
 }

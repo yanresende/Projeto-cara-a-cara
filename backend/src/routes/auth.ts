@@ -112,12 +112,14 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response): Promi
       return;
     }
 
-    const profile: UserProfile = {
+    const isAdmin = process.env.ADMIN_USERNAME ? user.username === process.env.ADMIN_USERNAME : false;
+    const profile = {
       id: user.id,
       username: user.username,
       score: user.score,
       gamesPlayed: user.gamesPlayed,
-      gamesWon: user.gamesWon
+      gamesWon: user.gamesWon,
+      isAdmin,
     };
 
     res.json(profile);

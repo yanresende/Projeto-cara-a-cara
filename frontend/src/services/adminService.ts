@@ -1,7 +1,7 @@
 import { API_URL } from '../utils/constants';
 import { getToken } from '../utils/localStorage';
 
-const BASE = `${API_URL}/admin`;
+const BASE = `${API_URL}/api/admin`;
 
 function authHeaders() {
   return {

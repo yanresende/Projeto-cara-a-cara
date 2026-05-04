@@ -71,7 +71,7 @@ export const ShopPage: React.FC = () => {
     }
   }
 
-  const categories: ShopCategory[] = ['boardSkin', 'cardFrame', 'profileFrame'];
+  const categories: ShopCategory[] = ['boardSkin', 'cardFrame', 'profileFrame', 'turnBanner'];
 
   return (
     <div className="shop-page">

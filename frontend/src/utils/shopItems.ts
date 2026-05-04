@@ -1,4 +1,4 @@
-export type ShopCategory = 'boardSkin' | 'cardFrame' | 'profileFrame';
+export type ShopCategory = 'boardSkin' | 'cardFrame' | 'profileFrame' | 'turnBanner';
 
 export interface ShopItem {
   id: string;
@@ -7,7 +7,7 @@ export interface ShopItem {
   category: ShopCategory;
   price: number;
   preview: string; // CSS color or gradient for preview swatch
-  cssClass: string; // applied to game container / card / avatar
+  cssClass: string; // applied to game container / card / avatar / player card
 }
 
 export const SHOP_ITEMS: ShopItem[] = [
@@ -160,12 +160,69 @@ export const SHOP_ITEMS: ShopItem[] = [
     preview: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)',
     cssClass: 'profile-frame-diamond',
   },
+
+  // ── Turn Banners ─────────────────────────────────────────
+  {
+    id: 'banner_default',
+    name: 'Padrão',
+    description: 'Brilho suave no seu turno',
+    category: 'turnBanner',
+    price: 0,
+    preview: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    cssClass: 'banner-default',
+  },
+  {
+    id: 'banner_lightning',
+    name: 'Raio Elétrico',
+    description: 'Pulso elétrico azul ao seu redor',
+    category: 'turnBanner',
+    price: 300,
+    preview: 'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)',
+    cssClass: 'banner-lightning',
+  },
+  {
+    id: 'banner_fire',
+    name: 'Chamas',
+    description: 'Aura de fogo ardente',
+    category: 'turnBanner',
+    price: 250,
+    preview: 'linear-gradient(135deg, #ef4444 0%, #f97316 100%)',
+    cssClass: 'banner-fire',
+  },
+  {
+    id: 'banner_blizzard',
+    name: 'Blizzard',
+    description: 'Shimmer gelado e cristalino',
+    category: 'turnBanner',
+    price: 200,
+    preview: 'linear-gradient(135deg, #06b6d4 0%, #818cf8 100%)',
+    cssClass: 'banner-blizzard',
+  },
+  {
+    id: 'banner_stars',
+    name: 'Estrelas Douradas',
+    description: 'Brilho dourado cintilante',
+    category: 'turnBanner',
+    price: 350,
+    preview: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+    cssClass: 'banner-stars',
+  },
+  {
+    id: 'banner_nebula',
+    name: 'Nebulosa',
+    description: 'Swirl galático roxo e misterioso',
+    category: 'turnBanner',
+    price: 500,
+    preview: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #06b6d4 100%)',
+    cssClass: 'banner-nebula',
+  },
 ];
 
 export const ITEMS_BY_CATEGORY: Record<ShopCategory, ShopItem[]> = {
-  boardSkin: SHOP_ITEMS.filter(i => i.category === 'boardSkin'),
-  cardFrame: SHOP_ITEMS.filter(i => i.category === 'cardFrame'),
+  boardSkin:   SHOP_ITEMS.filter(i => i.category === 'boardSkin'),
+  cardFrame:   SHOP_ITEMS.filter(i => i.category === 'cardFrame'),
   profileFrame: SHOP_ITEMS.filter(i => i.category === 'profileFrame'),
+  turnBanner:  SHOP_ITEMS.filter(i => i.category === 'turnBanner'),
 };
 
 export const ITEM_BY_ID: Record<string, ShopItem> = Object.fromEntries(
@@ -173,13 +230,15 @@ export const ITEM_BY_ID: Record<string, ShopItem> = Object.fromEntries(
 );
 
 export const CATEGORY_LABELS: Record<ShopCategory, { label: string; icon: string }> = {
-  boardSkin: { label: 'Skin do Tabuleiro', icon: '🎨' },
-  cardFrame: { label: 'Borda dos Cards', icon: '🖼️' },
+  boardSkin:   { label: 'Skin do Tabuleiro', icon: '🎨' },
+  cardFrame:   { label: 'Borda dos Cards',   icon: '🖼️' },
   profileFrame: { label: 'Moldura do Perfil', icon: '👤' },
+  turnBanner:  { label: 'Animação de Turno', icon: '✨' },
 };
 
 export const DEFAULT_EQUIPPED: Record<ShopCategory, string> = {
-  boardSkin: 'default',
-  cardFrame: 'default_frame',
+  boardSkin:   'default',
+  cardFrame:   'default_frame',
   profileFrame: 'no_frame',
+  turnBanner:  'banner_default',
 };

@@ -22,6 +22,12 @@ const ITEM_PRICES: Record<string, number> = {
   champion_ring: 400,
   neon_ring: 250,
   diamond_ring: 350,
+  // Turn banners
+  banner_lightning: 300,
+  banner_fire: 250,
+  banner_blizzard: 200,
+  banner_stars: 350,
+  banner_nebula: 500,
 };
 
 const VALID_ITEM_IDS = new Set(Object.keys(ITEM_PRICES));

@@ -7,10 +7,30 @@ import { QuestionInput } from '../components/game/QuestionInput';
 import { QuestionHistory } from '../components/game/QuestionHistory';
 import { CharacterGrid } from '../components/game/CharacterGrid';
 import { GameResult } from '../components/game/GameResult';
+import { UserAvatar } from '../components/common/UserAvatar';
 import { Button } from '../components/common/Button';
 import './GameRoomPage.css';
 import { ITEM_BY_ID, DEFAULT_EQUIPPED } from '../utils/shopItems';
-import type { Room } from '../types/index';
+import { API_URL } from '../utils/constants';
+import type { Room, EquippedItems } from '../types/index';
+
+interface PublicProfile {
+  id: string;
+  username: string;
+  avatarUrl: string | null;
+  leaguePoints: number;
+  equippedItems: EquippedItems;
+}
+
+const LEAGUE_ICON: Record<string, string> = {
+  campeao: '👑', diamante: '💎', ouro: '🏆', prata: '🥈', bronze: '🥉',
+};
+function getLeagueKey(lp: number): string {
+  if (lp >= 500) return 'diamante';
+  if (lp >= 250) return 'ouro';
+  if (lp >= 100) return 'prata';
+  return 'bronze';
+}
 
 export const GameRoomPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
@@ -44,6 +64,7 @@ export const GameRoomPage: React.FC = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [guessingMode, setGuessingMode] = useState(false);
+  const [opponentProfile, setOpponentProfile] = useState<PublicProfile | null>(null);
 
   useEffect(() => {
     if (!roomId) { navigate('/'); return; }
@@ -94,6 +115,17 @@ export const GameRoomPage: React.FC = () => {
   useEffect(() => {
     if (gameState) setGameStarted(true);
   }, [gameState]);
+
+  // Busca perfil público do oponente quando o jogo começa
+  useEffect(() => {
+    if (!gameState || !user?.id) return;
+    const opponentId = gameState.player1Id === user.id ? gameState.player2Id : gameState.player1Id;
+    if (!opponentId) return;
+    fetch(`${API_URL}/api/users/${opponentId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setOpponentProfile(data); })
+      .catch(() => {});
+  }, [gameState, user?.id]);
 
   // Quando entra em sala com jogo em andamento, solicita restauração do estado
   useEffect(() => {
@@ -153,12 +185,55 @@ export const GameRoomPage: React.FC = () => {
   const boardSkinClass = ITEM_BY_ID[equipped.boardSkin ?? DEFAULT_EQUIPPED.boardSkin]?.cssClass ?? '';
   const cardFrameClass = ITEM_BY_ID[equipped.cardFrame ?? DEFAULT_EQUIPPED.cardFrame]?.cssClass ?? '';
 
-  const renderTurnBanner = () => {
+  const renderPlayersBar = () => {
     if (!gameStarted) return null;
-    const myTurn = isMyTurn;
+
+    const myBannerClass = ITEM_BY_ID[equipped.turnBanner ?? DEFAULT_EQUIPPED.turnBanner]?.cssClass ?? 'banner-default';
+    const oppBannerClass = ITEM_BY_ID[opponentProfile?.equippedItems?.turnBanner ?? DEFAULT_EQUIPPED.turnBanner]?.cssClass ?? 'banner-default';
+    const myProfileFrameClass = ITEM_BY_ID[equipped.profileFrame ?? DEFAULT_EQUIPPED.profileFrame]?.cssClass ?? '';
+    const oppProfileFrameClass = ITEM_BY_ID[opponentProfile?.equippedItems?.profileFrame ?? DEFAULT_EQUIPPED.profileFrame]?.cssClass ?? '';
+
+    const myLP = user?.leaguePoints ?? 0;
+    const oppLP = opponentProfile?.leaguePoints ?? 0;
+
     return (
-      <div className={`turn-banner ${myTurn ? 'my-turn' : 'opponent-turn'}`}>
-        {myTurn ? '⚡ Seu turno' : `⏳ Turno de ${opponentName}`}
+      <div className="players-bar">
+        {/* My card */}
+        <div className={`player-card player-card-me ${isMyTurn ? `active ${myBannerClass}` : 'inactive'}`}>
+          <UserAvatar
+            username={user?.username ?? ''}
+            avatarUrl={user?.avatarUrl}
+            size={52}
+            profileFrameClass={myProfileFrameClass}
+          />
+          <div className="player-card-info">
+            <span className="player-card-name">{user?.username ?? 'Você'}</span>
+            <span className="player-card-league">
+              {LEAGUE_ICON[getLeagueKey(myLP)]} {myLP} LP
+            </span>
+          </div>
+          {isMyTurn && <div className="player-card-turn-label">⚡ Seu turno</div>}
+        </div>
+
+        {/* VS */}
+        <div className="players-bar-vs">VS</div>
+
+        {/* Opponent card */}
+        <div className={`player-card player-card-opp ${!isMyTurn ? `active ${oppBannerClass}` : 'inactive'}`}>
+          <UserAvatar
+            username={opponentProfile?.username ?? opponentName}
+            avatarUrl={opponentProfile?.avatarUrl}
+            size={52}
+            profileFrameClass={oppProfileFrameClass}
+          />
+          <div className="player-card-info">
+            <span className="player-card-name">{opponentProfile?.username ?? opponentName}</span>
+            <span className="player-card-league">
+              {LEAGUE_ICON[getLeagueKey(oppLP)]} {oppLP} LP
+            </span>
+          </div>
+          {!isMyTurn && <div className="player-card-turn-label">⏳ Pensando...</div>}
+        </div>
       </div>
     );
   };
@@ -281,11 +356,12 @@ export const GameRoomPage: React.FC = () => {
         <div className="header-left">
           <h1>{room.name}</h1>
         </div>
-        {renderTurnBanner()}
         <Button variant="secondary" size="small" onClick={handleBackToLobby}>
           Voltar ao Lobby
         </Button>
       </div>
+
+      {renderPlayersBar()}
 
       {!gameStarted ? (
         <div className="game-waiting">

@@ -24,6 +24,7 @@ export interface EquippedItems {
   boardSkin?: string | null;
   cardFrame?: string | null;
   profileFrame?: string | null;
+  turnBanner?: string | null;
 }
 
 export interface UserProfile {

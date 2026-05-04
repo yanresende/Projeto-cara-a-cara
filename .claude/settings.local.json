@@ -3,7 +3,9 @@
     "allow": [
       "Bash(Get-ChildItem -Recurse -Force)",
       "Bash(Select-Object FullName)",
-      "PowerShell(head -100)"
+      "PowerShell(head -100)",
+      "Bash(Select-Object FullName, Name)",
+      "Bash(Sort-Object FullName)"
     ]
   }
 }

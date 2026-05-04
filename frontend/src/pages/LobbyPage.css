@@ -23,7 +23,28 @@
 .header-right {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mode-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mode-badge-online {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.mode-badge-local {
+  background: rgba(52, 211, 153, 0.25);
+  color: #d1fae5;
+  border: 1px solid rgba(52, 211, 153, 0.5);
 }
 
 .lobby-content {

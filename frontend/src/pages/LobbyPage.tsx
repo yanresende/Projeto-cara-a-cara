@@ -16,6 +16,13 @@ export const LobbyPage: React.FC = () => {
   const [roomName, setRoomName] = useState('');
   const [themes, setThemes] = useState<Theme[]>([]);
   const [themeError, setThemeError] = useState<string | null>(null);
+  const gameMode = (localStorage.getItem('gameMode') as 'online' | 'local') || 'online';
+
+  useEffect(() => {
+    if (!localStorage.getItem('gameMode')) {
+      navigate('/mode-select');
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const loadThemes = async () => {
@@ -91,6 +98,12 @@ export const LobbyPage: React.FC = () => {
         <h1>Cara a Cara - Lobby</h1>
         <div className="header-right">
           <span>Bem-vindo, {user?.username}!</span>
+          <span className={`mode-badge mode-badge-${gameMode}`}>
+            {gameMode === 'local' ? '🤝 Local' : '🌐 Online'}
+          </span>
+          <Button variant="secondary" size="small" onClick={() => navigate('/mode-select')}>
+            Trocar modo
+          </Button>
           <Button variant="danger" size="small" onClick={handleLogout}>
             Sair
           </Button>

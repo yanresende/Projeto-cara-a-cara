@@ -44,6 +44,7 @@ interface UseGameSocketResult {
 
 export const useGameSocket = (roomId: string): UseGameSocketResult => {
   const { user } = useAuth();
+  const gameMode = (localStorage.getItem('gameMode') as 'online' | 'local') || 'online';
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [mySecretCharacter, setMySecretCharacter] = useState<Character | null>(null);
@@ -74,7 +75,10 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       setMySecretCharacter(mySecret);
       setQuestions([]);
       setEliminatedCharacters(new Set());
-      setTurnPhase(data.firstTurnPlayerId === user?.id ? 'my_turn_ask' : 'opponent_turn');
+      const myFirstPhase = data.firstTurnPlayerId === user?.id
+        ? (gameMode === 'local' ? 'my_turn_after_answer' : 'my_turn_ask')
+        : 'opponent_turn';
+      setTurnPhase(myFirstPhase);
       setGameEnded(false);
       setIsLoading(false);
       setError(null);
@@ -84,7 +88,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     const handleTurnChanged = (data: any) => {
       setGameState(prev => prev ? { ...prev, currentTurnPlayerId: data.currentTurnPlayerId, currentTurnUsername: data.currentTurnUsername } : null);
       if (data.currentTurnPlayerId === user?.id) {
-        setTurnPhase('my_turn_ask');
+        setTurnPhase(gameMode === 'local' ? 'my_turn_after_answer' : 'my_turn_ask');
       } else {
         setTurnPhase('opponent_turn');
       }
@@ -151,7 +155,9 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       setGuessResult(null);
 
       // Reconstrói a fase de turno a partir do estado do servidor
-      if (data.isMyTurn) {
+      if (gameMode === 'local') {
+        setTurnPhase(data.isMyTurn ? 'my_turn_after_answer' : 'opponent_turn');
+      } else if (data.isMyTurn) {
         if (data.waitingForAnswer) {
           setTurnPhase('my_turn_wait_answer');
         } else if (data.hasAskedThisTurn) {

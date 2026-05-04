@@ -10,7 +10,7 @@ export const LoginPage: React.FC = () => {
 
   const handleLogin = async (username: string, password: string) => {
     await login({ username, password });
-    navigate('/');
+    navigate('/mode-select');
   };
 
   return (

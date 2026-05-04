@@ -4,24 +4,30 @@ import './GameComponents.css';
 
 interface QuestionHistoryProps {
   questions: Question[];
+  currentUsername?: string;
 }
 
-export const QuestionHistory: React.FC<QuestionHistoryProps> = ({ questions }) => {
+export const QuestionHistory: React.FC<QuestionHistoryProps> = ({ questions, currentUsername }) => {
   return (
     <div className="question-history">
-      <h3>Histórico de Perguntas</h3>
       {questions.length === 0 ? (
         <p className="empty">Nenhuma pergunta feita ainda</p>
       ) : (
         <div className="questions-list">
-          {[...questions].reverse().map((q) => (
-            <div key={q.id} className="question-item">
-              <div className="question-text">{q.content}</div>
-              <div className={`answer ${q.answer}`}>
-                {q.answer === 'sim' ? '✓ Sim' : '✗ Não'}
+          {questions.map((q) => {
+            const isMine = q.askedBy === currentUsername;
+            return (
+              <div key={q.id} className={`question-bubble ${isMine ? 'mine' : 'theirs'}`}>
+                <span className="bubble-author">{isMine ? 'Você' : q.askedBy}</span>
+                <div className="bubble-body">
+                  <span className="bubble-text">{q.content}</span>
+                  <span className={`bubble-answer ${q.answer}`}>
+                    {q.answer === 'sim' ? '✓ Sim' : '✗ Não'}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

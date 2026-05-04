@@ -42,6 +42,7 @@ export const GameRoomPage: React.FC = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [guessingMode, setGuessingMode] = useState(false);
+  const gameMode = (localStorage.getItem('gameMode') as 'online' | 'local') || 'online';
 
   useEffect(() => {
     if (!roomId) { navigate('/'); return; }
@@ -186,8 +187,8 @@ export const GameRoomPage: React.FC = () => {
       );
     }
 
-    // Meu turno: preciso fazer uma pergunta
-    if (turnPhase === 'my_turn_ask') {
+    // Meu turno: preciso fazer uma pergunta (apenas modo online)
+    if (turnPhase === 'my_turn_ask' && gameMode === 'online') {
       return (
         <div className="action-area">
           <h3>Faça sua pergunta</h3>
@@ -218,7 +219,9 @@ export const GameRoomPage: React.FC = () => {
           <p className="action-hint">
             {guessingMode
               ? '🎯 Modo adivinhação: clique no personagem que você acha que é de ' + opponentName
-              : '🗑️ Clique nos personagens para eliminá-los. Quando quiser adivinhar, use o botão abaixo.'}
+              : gameMode === 'local'
+                ? '💬 Faça sua pergunta verbalmente. Clique nos personagens para eliminá-los.'
+                : '🗑️ Clique nos personagens para eliminá-los. Quando quiser adivinhar, use o botão abaixo.'}
           </p>
           {error && <div className="error-message">{error}</div>}
           {guessResult && !gameEnded && (
@@ -252,7 +255,11 @@ export const GameRoomPage: React.FC = () => {
       return (
         <div className="action-area waiting-area">
           <h3>Turno de {opponentName}</h3>
-          <p className="action-hint">Aguarde o adversário fazer sua pergunta...</p>
+          <p className="action-hint">
+            {gameMode === 'local'
+              ? `Aguarde ${opponentName} fazer sua pergunta verbalmente e eliminar os personagens.`
+              : `Aguarde o adversário fazer sua pergunta...`}
+          </p>
         </div>
       );
     }
@@ -315,10 +322,12 @@ export const GameRoomPage: React.FC = () => {
                 </div>
               </div>
             )}
-            <div className="question-history-section">
-              <h3>Histórico de perguntas</h3>
-              <QuestionHistory questions={questions} />
-            </div>
+            {gameMode === 'online' && (
+              <div className="question-history-section">
+                <h3>Histórico de perguntas</h3>
+                <QuestionHistory questions={questions} currentUsername={user?.username} />
+              </div>
+            )}
           </div>
 
           {/* Painel direito: grade de personagens */}

@@ -10,7 +10,7 @@ export const SignupPage: React.FC = () => {
 
   const handleSignup = async (username: string, password: string) => {
     await signup({ username, password });
-    navigate('/');
+    navigate('/mode-select');
   };
 
   return (

@@ -266,7 +266,7 @@
 
 .theme-card-cover {
   position: relative;
-  height: 80px;
+  aspect-ratio: 1;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -452,7 +452,7 @@
 
 .room-card-cover {
   position: relative;
-  height: 110px;
+  aspect-ratio: 1;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -581,8 +581,6 @@
   .lobby-body { padding: 14px 12px; }
   .create-section { padding: 20px 16px; }
   .theme-grid { grid-template-columns: repeat(2, 1fr); }
-  .theme-card-cover { height: 64px; }
   .rooms-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .room-card-cover { height: 80px; }
   .header-nav { gap: 2px; }
 }

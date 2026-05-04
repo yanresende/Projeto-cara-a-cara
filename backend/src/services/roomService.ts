@@ -8,7 +8,7 @@ export class RoomService {
     return uuidv4();
   }
 
-  createRoom(themeId: string, roomName: string, userId: string, username: string): Room {
+  createRoom(themeId: string, roomName: string, userId: string, username: string, gameMode: 'online' | 'local' = 'online'): Room {
     const roomId = this.generateRoomId();
     const room: Room = {
       id: roomId,
@@ -18,6 +18,7 @@ export class RoomService {
       maxPlayers: 2,
       createdAt: new Date(),
       status: 'waiting',
+      gameMode,
     };
     this.rooms.set(roomId, room);
     return room;
@@ -76,6 +77,7 @@ export class RoomService {
       maxPlayers: room.maxPlayers,
       createdAt: room.createdAt,
       status: room.status,
+      gameMode: room.gameMode,
     };
   }
 

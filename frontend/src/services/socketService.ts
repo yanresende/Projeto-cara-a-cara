@@ -103,8 +103,8 @@ class SocketService {
   }
 
   // High-level methods
-  createRoom(themeId: string, roomName: string, callback: (response: any) => void): void {
-    this.emit(SOCKET_EVENTS.CREATE_ROOM, { themeId, roomName }, callback);
+  createRoom(themeId: string, roomName: string, gameMode: 'online' | 'local', callback: (response: any) => void): void {
+    this.emit(SOCKET_EVENTS.CREATE_ROOM, { themeId, roomName, gameMode }, callback);
   }
 
   joinRoom(roomId: string, callback: (response: any) => void): void {

@@ -67,11 +67,11 @@ io.on('connection', async (socket: CustomSocket) => {
   // --- create_room ---
   socket.on('create_room', async (data, callback) => {
     try {
-      const { themeId, roomName } = data;
+      const { themeId, roomName, gameMode } = data;
       const theme = await prisma.theme.findUnique({ where: { id: themeId } });
       if (!theme) return callback({ success: false, error: 'Tema não encontrado' });
 
-      const room = roomService.createRoom(themeId, roomName, socket.userId!, socket.username || 'Anônimo');
+      const room = roomService.createRoom(themeId, roomName, socket.userId!, socket.username || 'Anônimo', gameMode || 'online');
       socket.join(room.id);
       io.emit('rooms_updated', { rooms: roomService.getAllNonFinishedRoomsDTO() });
       callback({ success: true, roomId: room.id, room: roomService.roomToDTO(room) });
@@ -215,6 +215,7 @@ io.on('connection', async (socket: CustomSocket) => {
           firstTurnPlayerId: game.currentTurnPlayerId,
           mySecretCharacterId,
           themeId: room.themeId,
+          gameMode: room.gameMode,
           characters: characters.map(c => ({ id: c.id, name: c.name, imageUrl: c.imageUrl })),
         });
       }
@@ -406,6 +407,7 @@ io.on('connection', async (socket: CustomSocket) => {
         currentTurnUsername,
         mySecretCharacterId,
         themeId: room.themeId,
+        gameMode: room.gameMode,
         characters: characters.map((c: any) => ({ id: c.id, name: c.name, imageUrl: c.imageUrl })),
         questions: questionsWithUsername,
         isMyTurn,

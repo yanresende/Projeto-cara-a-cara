@@ -29,6 +29,7 @@ export const GameRoomPage: React.FC = () => {
     winnerId,
     guessResult,
     isMyTurn,
+    gameMode,
     submitQuestion,
     answerQuestion,
     eliminateCharacter,
@@ -42,7 +43,6 @@ export const GameRoomPage: React.FC = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [guessingMode, setGuessingMode] = useState(false);
-  const gameMode = (localStorage.getItem('gameMode') as 'online' | 'local') || 'online';
 
   useEffect(() => {
     if (!roomId) { navigate('/'); return; }

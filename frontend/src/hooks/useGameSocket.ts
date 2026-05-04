@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { socketService } from '../services/socketService';
 import type { Character, Question } from '../types/index';
@@ -33,6 +33,7 @@ interface UseGameSocketResult {
   winnerName: string | null;
   guessResult: { characterName: string; opponentSecretName: string; isCorrect: boolean; message: string } | null;
   isMyTurn: boolean;
+  gameMode: 'online' | 'local';
   submitQuestion: (question: string) => void;
   answerQuestion: (answer: 'sim' | 'nao') => void;
   eliminateCharacter: (characterId: string) => void;
@@ -44,7 +45,13 @@ interface UseGameSocketResult {
 
 export const useGameSocket = (roomId: string): UseGameSocketResult => {
   const { user } = useAuth();
-  const gameMode = (localStorage.getItem('gameMode') as 'online' | 'local') || 'online';
+
+  // Ref garante que handlers dentro do useEffect sempre leem o valor atual
+  const gameModeRef = useRef<'online' | 'local'>(
+    (localStorage.getItem('gameMode') as 'online' | 'local') || 'online'
+  );
+  const [gameMode, setGameMode] = useState<'online' | 'local'>(gameModeRef.current);
+
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [mySecretCharacter, setMySecretCharacter] = useState<Character | null>(null);
@@ -63,6 +70,11 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
 
   useEffect(() => {
     const handleGameStarted = (data: any) => {
+      const mode: 'online' | 'local' = data.gameMode || 'online';
+      gameModeRef.current = mode;
+      setGameMode(mode);
+      localStorage.setItem('gameMode', mode);
+
       const mySecret = data.characters.find((c: Character) => c.id === data.mySecretCharacterId) || null;
 
       setGameState({
@@ -76,7 +88,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       setQuestions([]);
       setEliminatedCharacters(new Set());
       const myFirstPhase = data.firstTurnPlayerId === user?.id
-        ? (gameMode === 'local' ? 'my_turn_after_answer' : 'my_turn_ask')
+        ? (mode === 'local' ? 'my_turn_after_answer' : 'my_turn_ask')
         : 'opponent_turn';
       setTurnPhase(myFirstPhase);
       setGameEnded(false);
@@ -88,7 +100,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     const handleTurnChanged = (data: any) => {
       setGameState(prev => prev ? { ...prev, currentTurnPlayerId: data.currentTurnPlayerId, currentTurnUsername: data.currentTurnUsername } : null);
       if (data.currentTurnPlayerId === user?.id) {
-        setTurnPhase(gameMode === 'local' ? 'my_turn_after_answer' : 'my_turn_ask');
+        setTurnPhase(gameModeRef.current === 'local' ? 'my_turn_after_answer' : 'my_turn_ask');
       } else {
         setTurnPhase('opponent_turn');
       }
@@ -115,10 +127,8 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       setPendingQuestion(null);
       setIsLoading(false);
 
-      // Se eu perguntei (era meu turno), agora posso eliminar/adivinhar
       setTurnPhase(prev => {
         if (prev === 'my_turn_wait_answer') return 'my_turn_after_answer';
-        // Se eu era quem precisava responder, volta ao turno do adversário
         if (prev === 'opponent_asking_me') return 'opponent_turn';
         return prev;
       });
@@ -137,6 +147,11 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     };
 
     const handleGameStateRestored = (data: any) => {
+      const mode: 'online' | 'local' = data.gameMode || gameModeRef.current;
+      gameModeRef.current = mode;
+      setGameMode(mode);
+      localStorage.setItem('gameMode', mode);
+
       const mySecret = data.characters.find((c: Character) => c.id === data.mySecretCharacterId) || null;
 
       setGameState({
@@ -154,8 +169,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       setError(null);
       setGuessResult(null);
 
-      // Reconstrói a fase de turno a partir do estado do servidor
-      if (gameMode === 'local') {
+      if (mode === 'local') {
         setTurnPhase(data.isMyTurn ? 'my_turn_after_answer' : 'opponent_turn');
       } else if (data.isMyTurn) {
         if (data.waitingForAnswer) {
@@ -301,6 +315,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     winnerName,
     guessResult,
     isMyTurn,
+    gameMode,
     submitQuestion,
     answerQuestion,
     eliminateCharacter,

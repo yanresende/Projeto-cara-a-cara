@@ -8,7 +8,6 @@ import { LobbyPage } from './pages/LobbyPage';
 import { GameRoomPage } from './pages/GameRoomPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminPage } from './pages/AdminPage';
-import { ModeSelectionPage } from './pages/ModeSelectionPage';
 import './App.css';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -82,14 +81,6 @@ function AppContent() {
         element={
           <ProtectedRoute>
             <ProfilePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/mode-select"
-        element={
-          <ProtectedRoute>
-            <ModeSelectionPage />
           </ProtectedRoute>
         }
       />

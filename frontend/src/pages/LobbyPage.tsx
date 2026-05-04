@@ -14,15 +14,9 @@ export const LobbyPage: React.FC = () => {
   const { rooms, setRooms } = useGame();
   const [selectedThemeId, setSelectedThemeId] = useState('');
   const [roomName, setRoomName] = useState('');
+  const [selectedMode, setSelectedMode] = useState<'online' | 'local'>('online');
   const [themes, setThemes] = useState<Theme[]>([]);
   const [themeError, setThemeError] = useState<string | null>(null);
-  const gameMode = (localStorage.getItem('gameMode') as 'online' | 'local') || 'online';
-
-  useEffect(() => {
-    if (!localStorage.getItem('gameMode')) {
-      navigate('/mode-select');
-    }
-  }, [navigate]);
 
   useEffect(() => {
     const loadThemes = async () => {
@@ -45,7 +39,6 @@ export const LobbyPage: React.FC = () => {
     loadThemes();
   }, []);
 
-  // Busca a lista de salas ao montar — garante dados atualizados independente do timing do rooms_updated
   useEffect(() => {
     socketService.waitForConnection().then(() => {
       socketService.listRooms((response: { rooms: Parameters<typeof setRooms>[0] }) => {
@@ -77,7 +70,8 @@ export const LobbyPage: React.FC = () => {
       return;
     }
 
-    socketService.createRoom(selectedThemeId, roomName, (response) => {
+    localStorage.setItem('gameMode', selectedMode);
+    socketService.createRoom(selectedThemeId, roomName, selectedMode, (response) => {
       if (response.success) {
         navigate(`/room/${response.roomId}`);
       }
@@ -85,6 +79,10 @@ export const LobbyPage: React.FC = () => {
   };
 
   const handleJoinRoom = (roomId: string) => {
+    const room = rooms.find(r => r.id === roomId);
+    if (room?.gameMode) {
+      localStorage.setItem('gameMode', room.gameMode);
+    }
     socketService.joinRoom(roomId, (response) => {
       if (response.success) {
         navigate(`/room/${roomId}`);
@@ -98,12 +96,6 @@ export const LobbyPage: React.FC = () => {
         <h1>Cara a Cara - Lobby</h1>
         <div className="header-right">
           <span>Bem-vindo, {user?.username}!</span>
-          <span className={`mode-badge mode-badge-${gameMode}`}>
-            {gameMode === 'local' ? '🤝 Local' : '🌐 Online'}
-          </span>
-          <Button variant="secondary" size="small" onClick={() => navigate('/mode-select')}>
-            Trocar modo
-          </Button>
           <Button variant="danger" size="small" onClick={handleLogout}>
             Sair
           </Button>
@@ -114,6 +106,30 @@ export const LobbyPage: React.FC = () => {
         <div className="create-room-section">
           <h2>Criar Nova Sala</h2>
           {themeError && <p className="empty-message">{themeError}</p>}
+
+          <div className="mode-selector">
+            <span className="mode-selector-label">Modo de jogo:</span>
+            <button
+              className={`mode-option ${selectedMode === 'online' ? 'active' : ''}`}
+              onClick={() => setSelectedMode('online')}
+              type="button"
+            >
+              🌐 Online
+            </button>
+            <button
+              className={`mode-option ${selectedMode === 'local' ? 'active' : ''}`}
+              onClick={() => setSelectedMode('local')}
+              type="button"
+            >
+              🤝 Local (Presencial)
+            </button>
+          </div>
+          {selectedMode === 'local' && (
+            <p className="mode-hint">
+              Modo presencial: as perguntas e respostas são feitas de boca em boca, sem precisar digitar.
+            </p>
+          )}
+
           <div className="create-form">
             <select
               value={selectedThemeId}
@@ -166,7 +182,12 @@ export const LobbyPage: React.FC = () => {
                   <div className="rooms-grid">
                     {waitingRooms.map(room => (
                       <div key={room.id} className="room-card">
-                        <h3>{room.name}</h3>
+                        <div className="room-card-header">
+                          <h3>{room.name}</h3>
+                          <span className={`room-mode-badge room-mode-${room.gameMode || 'online'}`}>
+                            {room.gameMode === 'local' ? '🤝 Local' : '🌐 Online'}
+                          </span>
+                        </div>
                         <p className="theme">Tema: {room.themeId}</p>
                         <p className="players">
                           Jogadores: {room.playerCount}/{room.maxPlayers}
@@ -191,7 +212,12 @@ export const LobbyPage: React.FC = () => {
                         const isMyGame = room.playerIds?.includes(user?.id || '');
                         return (
                           <div key={room.id} className={`room-card playing${isMyGame ? ' my-game' : ''}`}>
-                            <h3>{room.name}</h3>
+                            <div className="room-card-header">
+                              <h3>{room.name}</h3>
+                              <span className={`room-mode-badge room-mode-${room.gameMode || 'online'}`}>
+                                {room.gameMode === 'local' ? '🤝 Local' : '🌐 Online'}
+                              </span>
+                            </div>
                             <p className="theme">Tema: {room.themeId}</p>
                             <p className="players">
                               Jogadores: {room.playerCount}/{room.maxPlayers}

@@ -44,6 +44,7 @@ export interface Room {
   maxPlayers: number;
   createdAt: Date;
   status: GameStatus;
+  gameMode: 'online' | 'local';
 }
 
 export interface RoomWithoutPassword {
@@ -55,6 +56,7 @@ export interface RoomWithoutPassword {
   maxPlayers: number;
   createdAt: Date;
   status: GameStatus;
+  gameMode: 'online' | 'local';
 }
 
 export interface CreateRoomPayload {

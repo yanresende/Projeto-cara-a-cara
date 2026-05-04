@@ -337,11 +337,16 @@ export const GameRoomPage: React.FC = () => {
           <div className="game-panel right-panel">
             <div className="grid-header">
               <h3>Personagens do adversário</h3>
-              {isMyTurn && turnPhase !== 'my_turn_ask' && turnPhase !== 'my_turn_wait_answer' && (
-                <span className="eliminated-count">
-                  {eliminatedCharacters.size} eliminados
+              <div className="character-stats">
+                <span className="remaining-count">
+                  {characters.length - eliminatedCharacters.size} restantes
                 </span>
-              )}
+                {isMyTurn && turnPhase !== 'my_turn_ask' && turnPhase !== 'my_turn_wait_answer' && (
+                  <span className="eliminated-count">
+                    {eliminatedCharacters.size} eliminados
+                  </span>
+                )}
+              </div>
             </div>
             <CharacterGrid
               characters={characters}

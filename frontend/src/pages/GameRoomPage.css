@@ -188,6 +188,21 @@
   padding-bottom: 0;
 }
 
+.character-stats {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.remaining-count {
+  font-size: 13px;
+  color: #10b981;
+  font-weight: 600;
+  background: #d1fae5;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
 .eliminated-count {
   font-size: 13px;
   color: #ef4444;

@@ -20,6 +20,7 @@ export interface ServerToClientEvents {
     firstTurnPlayerId: string;
     mySecretCharacterId: string;
     themeId: string;
+    gameMode: 'online' | 'local';
     characters: any[];
   }) => void;
   question_pending: (data: { question: string; askedByUsername: string }) => void;
@@ -31,7 +32,7 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-  create_room: (data: { themeId: string; roomName: string }, callback: (response: any) => void) => void;
+  create_room: (data: { themeId: string; roomName: string; gameMode?: 'online' | 'local' }, callback: (response: any) => void) => void;
   join_room: (data: { roomId: string }, callback: (response: any) => void) => void;
   leave_room: (data: { roomId: string }, callback: (response: any) => void) => void;
   list_rooms: (callback: (response: { rooms: RoomWithoutPassword[] }) => void) => void;

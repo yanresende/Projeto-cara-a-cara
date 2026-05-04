@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../utils/constants';
 import { Button } from '../components/common/Button';
+import { UserAvatar } from '../components/common/UserAvatar';
 import type { League } from '../types/index';
 import './RankingPage.css';
 
@@ -10,6 +11,7 @@ interface RankedPlayer {
   rank: number;
   id: string;
   username: string;
+  avatarUrl?: string | null;
   gamesPlayed: number;
   gamesWon: number;
   gamesLost: number;
@@ -228,6 +230,12 @@ export const RankingPage: React.FC = () => {
                               <span className="rank-number">{p.rank}</span>
                             </td>
                             <td className="ranking-username">
+                              <UserAvatar
+                                username={p.username}
+                                avatarUrl={p.avatarUrl}
+                                size={28}
+                                className="ranking-avatar"
+                              />
                               {p.username}
                               {isMe && <span className="you-badge">você</span>}
                             </td>

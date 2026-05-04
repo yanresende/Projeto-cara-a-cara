@@ -17,6 +17,20 @@ interface LoginBody {
   password?: string;
 }
 
+function buildUserProfile(user: any): UserProfile {
+  const isAdmin = process.env.ADMIN_USERNAME ? user.username === process.env.ADMIN_USERNAME : false;
+  return {
+    id: user.id,
+    username: user.username,
+    avatarUrl: user.avatarUrl ?? null,
+    score: user.score,
+    gamesPlayed: user.gamesPlayed,
+    gamesWon: user.gamesWon,
+    leaguePoints: user.leaguePoints,
+    isAdmin,
+  };
+}
+
 // POST /api/auth/signup
 router.post('/signup', async (req, res): Promise<void> => {
   try {
@@ -43,12 +57,8 @@ router.post('/signup', async (req, res): Promise<void> => {
       data: { username, passwordHash }
     });
 
-    const isAdmin = process.env.ADMIN_USERNAME ? user.username === process.env.ADMIN_USERNAME : false;
-    const token = generateToken(user.id, isAdmin);
-    const response = {
-      token,
-      user: { id: user.id, username: user.username, score: user.score, gamesPlayed: user.gamesPlayed, gamesWon: user.gamesWon, leaguePoints: user.leaguePoints, isAdmin }
-    };
+    const token = generateToken(user.id, false);
+    const response = { token, user: buildUserProfile(user) };
 
     res.status(201).json(response);
   } catch (error) {
@@ -86,10 +96,7 @@ router.post('/login', async (req, res): Promise<void> => {
 
     const isAdmin = process.env.ADMIN_USERNAME ? user.username === process.env.ADMIN_USERNAME : false;
     const token = generateToken(user.id, isAdmin);
-    const response = {
-      token,
-      user: { id: user.id, username: user.username, score: user.score, gamesPlayed: user.gamesPlayed, gamesWon: user.gamesWon, leaguePoints: user.leaguePoints, isAdmin }
-    };
+    const response = { token, user: buildUserProfile(user) };
 
     res.json(response);
   } catch (error) {
@@ -112,20 +119,45 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response): Promi
       return;
     }
 
-    const isAdmin = process.env.ADMIN_USERNAME ? user.username === process.env.ADMIN_USERNAME : false;
-    const profile = {
-      id: user.id,
-      username: user.username,
-      score: user.score,
-      gamesPlayed: user.gamesPlayed,
-      gamesWon: user.gamesWon,
-      leaguePoints: user.leaguePoints,
-      isAdmin,
-    };
-
-    res.json(profile);
+    res.json(buildUserProfile(user));
   } catch (error) {
     console.error('Get profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PATCH /api/auth/me/avatar
+router.patch('/me/avatar', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user?.id) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { avatarUrl } = req.body;
+
+    if (avatarUrl !== null && typeof avatarUrl !== 'string') {
+      res.status(400).json({ error: 'avatarUrl deve ser uma string ou null' });
+      return;
+    }
+
+    // Validate that the avatarUrl belongs to an existing character
+    if (avatarUrl) {
+      const character = await prisma.character.findFirst({ where: { imageUrl: avatarUrl } });
+      if (!character) {
+        res.status(400).json({ error: 'Personagem não encontrado' });
+        return;
+      }
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { avatarUrl: avatarUrl ?? null },
+    });
+
+    res.json({ success: true, avatarUrl: user.avatarUrl });
+  } catch (error) {
+    console.error('Update avatar error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

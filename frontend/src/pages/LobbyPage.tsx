@@ -6,6 +6,7 @@ import { socketService } from '../services/socketService';
 import { API_URL } from '../utils/constants';
 import type { Theme } from '../types/index';
 import { Button } from '../components/common/Button';
+import { UserAvatar } from '../components/common/UserAvatar';
 import './LobbyPage.css';
 
 type League = 'bronze' | 'prata' | 'ouro' | 'diamante' | 'campeao';
@@ -131,9 +132,13 @@ export const LobbyPage: React.FC = () => {
             <span className="chip-lp">{lp} LP</span>
           </div>
 
-          <div className="user-avatar" title={user?.username}>
-            {user?.username?.charAt(0).toUpperCase()}
-          </div>
+          <UserAvatar
+            username={user?.username || ''}
+            avatarUrl={user?.avatarUrl}
+            size={40}
+            className="user-avatar"
+            onClick={() => navigate('/profile')}
+          />
 
           <div className="header-nav">
             <button className="header-nav-btn" onClick={() => navigate('/ranking')}>Ranking</button>

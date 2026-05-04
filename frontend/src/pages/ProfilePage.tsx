@@ -1,7 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
+import { UserAvatar } from '../components/common/UserAvatar';
+import { AvatarPicker } from '../components/common/AvatarPicker';
 import type { League } from '../types/index';
 
 const LEAGUE_CONFIG: Record<League, { label: string; icon: string; color: string; bg: string }> = {
@@ -22,6 +24,7 @@ function getLeague(lp: number): League {
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, refreshUser } = useAuth();
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
 
   useEffect(() => {
     refreshUser();
@@ -43,7 +46,58 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
-      <h1>{user.username}</h1>
+
+      {/* Avatar + nome */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
+        <div style={{ position: 'relative' }}>
+          <UserAvatar
+            username={user.username}
+            avatarUrl={user.avatarUrl}
+            size={88}
+          />
+          <button
+            onClick={() => setShowAvatarPicker(true)}
+            title="Alterar foto de perfil"
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              width: 26,
+              height: 26,
+              borderRadius: '50%',
+              background: '#6366f1',
+              border: '2px solid #1a1a2e',
+              color: 'white',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 0,
+            }}
+          >
+            ✎
+          </button>
+        </div>
+        <div>
+          <h1 style={{ margin: 0 }}>{user.username}</h1>
+          <button
+            onClick={() => setShowAvatarPicker(true)}
+            style={{
+              marginTop: '6px',
+              background: 'none',
+              border: 'none',
+              color: '#6366f1',
+              cursor: 'pointer',
+              fontSize: '0.85rem',
+              padding: 0,
+              textDecoration: 'underline',
+            }}
+          >
+            {user.avatarUrl ? 'Alterar foto de perfil' : 'Adicionar foto de perfil'}
+          </button>
+        </div>
+      </div>
 
       {/* Badge de liga */}
       <div style={{
@@ -72,6 +126,14 @@ export const ProfilePage: React.FC = () => {
         <Button variant="secondary" onClick={() => navigate('/')}>Voltar ao Lobby</Button>
         <Button variant="danger" onClick={handleLogout}>Sair</Button>
       </div>
+
+      {showAvatarPicker && (
+        <AvatarPicker
+          currentAvatarUrl={user.avatarUrl}
+          onClose={() => setShowAvatarPicker(false)}
+          onSaved={() => setShowAvatarPicker(false)}
+        />
+      )}
     </div>
   );
 };

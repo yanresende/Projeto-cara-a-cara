@@ -15,12 +15,13 @@ function getLeague(lp: number, rank: number): League {
   return 'bronze';
 }
 
-function buildPlayer(user: { id: string; username: string; gamesPlayed: number; gamesWon: number; leaguePoints: number }, rank: number) {
+function buildPlayer(user: { id: string; username: string; avatarUrl?: string | null; gamesPlayed: number; gamesWon: number; leaguePoints: number }, rank: number) {
   const winRate = user.gamesPlayed > 0 ? (user.gamesWon / user.gamesPlayed) * 100 : 0;
   return {
     rank,
     id: user.id,
     username: user.username,
+    avatarUrl: user.avatarUrl ?? null,
     gamesPlayed: user.gamesPlayed,
     gamesWon: user.gamesWon,
     gamesLost: user.gamesPlayed - user.gamesWon,
@@ -41,7 +42,7 @@ router.get('/leaderboard', authMiddleware, async (req, res) => {
     // Buscar todos para calcular rank e liga corretamente
     const allUsers = await prisma.user.findMany({
       where: { gamesPlayed: { gt: 0 } },
-      select: { id: true, username: true, gamesPlayed: true, gamesWon: true, leaguePoints: true },
+      select: { id: true, username: true, avatarUrl: true, gamesPlayed: true, gamesWon: true, leaguePoints: true },
     });
 
     // Ordenar: LP desc → winRate desc (desempate) → gamesWon desc

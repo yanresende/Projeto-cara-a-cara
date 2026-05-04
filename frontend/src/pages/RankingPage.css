@@ -131,6 +131,7 @@
 
 .ranking-username { padding: 13px 14px; font-weight: 600; color: #1f2937; }
 .ranking-username { display: flex; align-items: center; gap: 8px; }
+.ranking-avatar { flex-shrink: 0; }
 .you-badge {
   font-size: 10px; font-weight: 700;
   background: #667eea; color: white;

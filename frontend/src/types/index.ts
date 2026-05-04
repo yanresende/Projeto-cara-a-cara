@@ -4,6 +4,7 @@ export type League = 'bronze' | 'prata' | 'ouro' | 'diamante' | 'campeao';
 export interface UserProfile {
   id: string;
   username: string;
+  avatarUrl?: string | null;
   score: number;
   gamesPlayed: number;
   gamesWon: number;

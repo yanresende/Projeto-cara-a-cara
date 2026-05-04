@@ -11,6 +11,7 @@ model User {
   id            String   @id @default(uuid())
   username      String   @unique
   passwordHash  String
+  avatarUrl     String?
   score         Int      @default(0)
   gamesPlayed   Int      @default(0)
   gamesWon      Int      @default(0)

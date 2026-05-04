@@ -14,6 +14,7 @@ model User {
   score         Int      @default(0)
   gamesPlayed   Int      @default(0)
   gamesWon      Int      @default(0)
+  leaguePoints  Int      @default(0)
 
   gamesWonAs    MatchHistory[] @relation("Winner")
   gamesLostAs   MatchHistory[] @relation("Loser")

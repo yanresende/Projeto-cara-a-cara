@@ -1,10 +1,13 @@
 // Backend type re-exports
+export type League = 'bronze' | 'prata' | 'ouro' | 'diamante' | 'campeao';
+
 export interface UserProfile {
   id: string;
   username: string;
   score: number;
   gamesPlayed: number;
   gamesWon: number;
+  leaguePoints: number;
   isAdmin?: boolean;
 }
 

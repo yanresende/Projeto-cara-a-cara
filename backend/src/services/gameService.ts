@@ -157,13 +157,25 @@ export class GameService {
 
       if (game.winner) {
         const loserId = this.getOpponentId(game, game.winner);
+
+        // Buscar LP atual do perdedor para não ir abaixo de 0
+        const loser = await prisma.user.findUnique({ where: { id: loserId }, select: { leaguePoints: true } });
+        const lpDeduct = Math.min(loser?.leaguePoints ?? 0, 10);
+
         await prisma.user.update({
           where: { id: game.winner },
-          data: { gamesWon: { increment: 1 }, gamesPlayed: { increment: 1 } },
+          data: {
+            gamesWon: { increment: 1 },
+            gamesPlayed: { increment: 1 },
+            leaguePoints: { increment: 20 },
+          },
         });
         await prisma.user.update({
           where: { id: loserId },
-          data: { gamesPlayed: { increment: 1 } },
+          data: {
+            gamesPlayed: { increment: 1 },
+            leaguePoints: { decrement: lpDeduct },
+          },
         });
       }
     } catch (error) {

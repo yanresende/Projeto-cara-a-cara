@@ -4,57 +4,71 @@ import { prisma } from '../server';
 
 const router = Router();
 
-// Score composto: vitórias × 10 + taxa de vitória (0-100)
-// Garante que quem vence mais E é mais consistente fica à frente
-function calcRankScore(gamesWon: number, gamesPlayed: number): number {
-  const winRate = gamesPlayed > 0 ? (gamesWon / gamesPlayed) * 100 : 0;
-  return gamesWon * 10 + winRate;
+export type League = 'bronze' | 'prata' | 'ouro' | 'diamante' | 'campeao';
+
+// Campeão = top 20 com LP >= 500. Demais por threshold de LP.
+function getLeague(lp: number, rank: number): League {
+  if (rank <= 20 && lp >= 500) return 'campeao';
+  if (lp >= 500) return 'diamante';
+  if (lp >= 250) return 'ouro';
+  if (lp >= 100) return 'prata';
+  return 'bronze';
+}
+
+function buildPlayer(user: { id: string; username: string; gamesPlayed: number; gamesWon: number; leaguePoints: number }, rank: number) {
+  const winRate = user.gamesPlayed > 0 ? (user.gamesWon / user.gamesPlayed) * 100 : 0;
+  return {
+    rank,
+    id: user.id,
+    username: user.username,
+    gamesPlayed: user.gamesPlayed,
+    gamesWon: user.gamesWon,
+    gamesLost: user.gamesPlayed - user.gamesWon,
+    winRate: winRate.toFixed(1),
+    leaguePoints: user.leaguePoints,
+    league: getLeague(user.leaguePoints, rank),
+  };
 }
 
 // GET /api/ranking/leaderboard
+// Query params: limit (max 200), offset, league (filter by league)
 router.get('/leaderboard', authMiddleware, async (req, res) => {
   try {
-    const limit = Math.min(parseInt(req.query.limit as string) || 10, 100);
+    const limit = Math.min(parseInt(req.query.limit as string) || 100, 200);
     const offset = parseInt(req.query.offset as string) || 0;
+    const leagueFilter = req.query.league as League | undefined;
 
+    // Buscar todos para calcular rank e liga corretamente
     const allUsers = await prisma.user.findMany({
       where: { gamesPlayed: { gt: 0 } },
-      select: {
-        id: true,
-        username: true,
-        gamesPlayed: true,
-        gamesWon: true,
-      },
+      select: { id: true, username: true, gamesPlayed: true, gamesWon: true, leaguePoints: true },
+      orderBy: [{ leaguePoints: 'desc' }, { gamesWon: 'desc' }],
     });
 
-    // Ordenar por score composto DESC, depois winRate DESC, depois gamesPlayed DESC
-    allUsers.sort((a, b) => {
-      const scoreA = calcRankScore(a.gamesWon, a.gamesPlayed);
-      const scoreB = calcRankScore(b.gamesWon, b.gamesPlayed);
-      if (scoreB !== scoreA) return scoreB - scoreA;
-      const wrA = a.gamesPlayed > 0 ? a.gamesWon / a.gamesPlayed : 0;
-      const wrB = b.gamesPlayed > 0 ? b.gamesWon / b.gamesPlayed : 0;
-      if (wrB !== wrA) return wrB - wrA;
-      return b.gamesPlayed - a.gamesPlayed;
+    // Atribuir ranks e ligas
+    const ranked = allUsers.map((u, i) => buildPlayer(u, i + 1));
+
+    // Contagem por liga
+    const leagueCounts = {
+      campeao: ranked.filter(p => p.league === 'campeao').length,
+      diamante: ranked.filter(p => p.league === 'diamante').length,
+      ouro: ranked.filter(p => p.league === 'ouro').length,
+      prata: ranked.filter(p => p.league === 'prata').length,
+      bronze: ranked.filter(p => p.league === 'bronze').length,
+    };
+
+    // Filtrar por liga se solicitado
+    const filtered = leagueFilter ? ranked.filter(p => p.league === leagueFilter) : ranked;
+    const paginated = filtered.slice(offset, offset + limit);
+
+    res.json({
+      players: paginated,
+      total: filtered.length,
+      totalAll: allUsers.length,
+      leagueCounts,
+      limit,
+      offset,
     });
-
-    const paginated = allUsers.slice(offset, offset + limit);
-
-    const usersWithStats = paginated.map((user, index) => {
-      const winRate = user.gamesPlayed > 0 ? (user.gamesWon / user.gamesPlayed) * 100 : 0;
-      return {
-        rank: offset + index + 1,
-        id: user.id,
-        username: user.username,
-        gamesPlayed: user.gamesPlayed,
-        gamesWon: user.gamesWon,
-        gamesLost: user.gamesPlayed - user.gamesWon,
-        winRate: winRate.toFixed(1),
-        score: Math.round(calcRankScore(user.gamesWon, user.gamesPlayed)),
-      };
-    });
-
-    res.json({ players: usersWithStats, total: allUsers.length, limit, offset });
   } catch (error) {
     console.error('Erro ao buscar leaderboard:', error);
     res.status(500).json({ error: 'Erro ao buscar leaderboard' });
@@ -68,108 +82,44 @@ router.get('/user/:userId', authMiddleware, async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        username: true,
-        gamesPlayed: true,
-        gamesWon: true,
-      },
+      select: { id: true, username: true, gamesPlayed: true, gamesWon: true, leaguePoints: true },
     });
 
-    if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado' });
-    }
+    if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
 
-    // Fetch user's won games (as winner)
-    const wonGames = await prisma.game.findMany({
-      where: { winnerId: userId },
-      select: {
-        id: true,
-        winnerId: true,
-        questionerId: true,
-        thinkerId: true,
-        questionCount: true,
-        createdAt: true,
-        questioner: { select: { username: true } },
-        thinker: { select: { username: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    });
-
-    const recentGames = wonGames.map(game => ({
-      id: game.id,
-      opponentName:
-        game.questionerId === userId
-          ? game.thinker.username
-          : game.questioner.username,
-      result: 'win',
-      questionsCount: game.questionCount,
-      createdAt: game.createdAt,
-    }));
-
-    // Also fetch games where user participated but didn't win
-    const lostGames = await prisma.game.findMany({
-      where: {
-        OR: [
-          { questionerId: userId, winnerId: { not: userId } },
-          { thinkerId: userId, winnerId: { not: userId } },
-        ],
-      },
-      select: {
-        id: true,
-        winnerId: true,
-        questionerId: true,
-        thinkerId: true,
-        questionCount: true,
-        createdAt: true,
-        questioner: { select: { username: true } },
-        thinker: { select: { username: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    });
-
-    const recentLosses = lostGames.map(game => ({
-      id: game.id,
-      opponentName:
-        game.questionerId === userId
-          ? game.thinker.username
-          : game.questioner.username,
-      result: 'loss',
-      questionsCount: game.questionCount,
-      createdAt: game.createdAt,
-    }));
-
-    const allRecentGames = [...recentGames, ...recentLosses]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5);
-
-    // Rank calculation usando o mesmo score composto do leaderboard
+    // Calcular rank global
     const allUsers = await prisma.user.findMany({
       where: { gamesPlayed: { gt: 0 } },
-      select: { id: true, gamesWon: true, gamesPlayed: true },
-    });
-
-    allUsers.sort((a, b) => {
-      const scoreA = calcRankScore(a.gamesWon, a.gamesPlayed);
-      const scoreB = calcRankScore(b.gamesWon, b.gamesPlayed);
-      return scoreB - scoreA;
+      select: { id: true, leaguePoints: true, gamesWon: true },
+      orderBy: [{ leaguePoints: 'desc' }, { gamesWon: 'desc' }],
     });
 
     const rank = allUsers.findIndex(u => u.id === userId) + 1;
+    const player = buildPlayer(user, rank || allUsers.length + 1);
 
-    res.json({
-      user: {
-        id: user.id,
-        username: user.username,
-        gamesPlayed: user.gamesPlayed,
-        gamesWon: user.gamesWon,
-        winRate: user.gamesPlayed > 0 ? ((user.gamesWon / user.gamesPlayed) * 100).toFixed(2) : '0.00',
-      },
-      rank: rank || 0,
-      recentGames: allRecentGames,
+    // Partidas recentes
+    const wonGames = await prisma.game.findMany({
+      where: { winnerId: userId },
+      select: { id: true, questionerId: true, thinkerId: true, questionCount: true, createdAt: true,
+        questioner: { select: { username: true } }, thinker: { select: { username: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
     });
+
+    const lostGames = await prisma.game.findMany({
+      where: { OR: [{ questionerId: userId, winnerId: { not: userId } }, { thinkerId: userId, winnerId: { not: userId } }] },
+      select: { id: true, questionerId: true, thinkerId: true, questionCount: true, createdAt: true,
+        questioner: { select: { username: true } }, thinker: { select: { username: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    });
+
+    const allRecentGames = [
+      ...wonGames.map(g => ({ id: g.id, opponentName: g.questionerId === userId ? g.thinker.username : g.questioner.username, result: 'win', questionsCount: g.questionCount, createdAt: g.createdAt })),
+      ...lostGames.map(g => ({ id: g.id, opponentName: g.questionerId === userId ? g.thinker.username : g.questioner.username, result: 'loss', questionsCount: g.questionCount, createdAt: g.createdAt })),
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+
+    res.json({ user: player, rank: rank || 0, recentGames: allRecentGames });
   } catch (error) {
     console.error('Erro ao buscar stats de usuário:', error);
     res.status(500).json({ error: 'Erro ao buscar stats' });
@@ -181,26 +131,13 @@ router.get('/stats', authMiddleware, async (req, res) => {
   try {
     const totalGames = await prisma.game.count();
     const totalPlayers = await prisma.user.count();
+    const gameStats = await prisma.user.aggregate({ _avg: { gamesWon: true, gamesPlayed: true } });
+    const avgWinRate = gameStats._avg.gamesPlayed && gameStats._avg.gamesWon
+      ? ((gameStats._avg.gamesWon / gameStats._avg.gamesPlayed) * 100).toFixed(2)
+      : '0.00';
 
-    const gameStats = await prisma.user.aggregate({
-      _avg: {
-        gamesWon: true,
-        gamesPlayed: true,
-      },
-    });
-
-    const avgWinRate =
-      gameStats._avg.gamesPlayed && gameStats._avg.gamesWon
-        ? ((gameStats._avg.gamesWon / gameStats._avg.gamesPlayed) * 100).toFixed(2)
-        : '0.00';
-
-    res.json({
-      totalGames,
-      totalPlayers,
-      avgWinRate: parseFloat(avgWinRate),
-    });
+    res.json({ totalGames, totalPlayers, avgWinRate: parseFloat(avgWinRate) });
   } catch (error) {
-    console.error('Erro ao buscar stats globais:', error);
     res.status(500).json({ error: 'Erro ao buscar stats' });
   }
 });

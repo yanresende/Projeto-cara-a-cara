@@ -4,13 +4,20 @@ import { prisma } from '../server';
 
 const router = Router();
 
+// Score composto: vitórias × 10 + taxa de vitória (0-100)
+// Garante que quem vence mais E é mais consistente fica à frente
+function calcRankScore(gamesWon: number, gamesPlayed: number): number {
+  const winRate = gamesPlayed > 0 ? (gamesWon / gamesPlayed) * 100 : 0;
+  return gamesWon * 10 + winRate;
+}
+
 // GET /api/ranking/leaderboard
 router.get('/leaderboard', authMiddleware, async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit as string) || 10, 100);
     const offset = parseInt(req.query.offset as string) || 0;
 
-    const users = await prisma.user.findMany({
+    const allUsers = await prisma.user.findMany({
       where: { gamesPlayed: { gt: 0 } },
       select: {
         id: true,
@@ -18,22 +25,36 @@ router.get('/leaderboard', authMiddleware, async (req, res) => {
         gamesPlayed: true,
         gamesWon: true,
       },
-      orderBy: [{ gamesWon: 'desc' }, { gamesPlayed: 'desc' }],
-      take: limit,
-      skip: offset,
     });
 
-    const usersWithStats = users.map((user, index) => ({
-      rank: offset + index + 1,
-      id: user.id,
-      username: user.username,
-      gamesPlayed: user.gamesPlayed,
-      gamesWon: user.gamesWon,
-      winRate: user.gamesPlayed > 0 ? ((user.gamesWon / user.gamesPlayed) * 100).toFixed(2) : '0.00',
-      score: user.gamesWon * 10,
-    }));
+    // Ordenar por score composto DESC, depois winRate DESC, depois gamesPlayed DESC
+    allUsers.sort((a, b) => {
+      const scoreA = calcRankScore(a.gamesWon, a.gamesPlayed);
+      const scoreB = calcRankScore(b.gamesWon, b.gamesPlayed);
+      if (scoreB !== scoreA) return scoreB - scoreA;
+      const wrA = a.gamesPlayed > 0 ? a.gamesWon / a.gamesPlayed : 0;
+      const wrB = b.gamesPlayed > 0 ? b.gamesWon / b.gamesPlayed : 0;
+      if (wrB !== wrA) return wrB - wrA;
+      return b.gamesPlayed - a.gamesPlayed;
+    });
 
-    res.json({ players: usersWithStats, limit, offset });
+    const paginated = allUsers.slice(offset, offset + limit);
+
+    const usersWithStats = paginated.map((user, index) => {
+      const winRate = user.gamesPlayed > 0 ? (user.gamesWon / user.gamesPlayed) * 100 : 0;
+      return {
+        rank: offset + index + 1,
+        id: user.id,
+        username: user.username,
+        gamesPlayed: user.gamesPlayed,
+        gamesWon: user.gamesWon,
+        gamesLost: user.gamesPlayed - user.gamesWon,
+        winRate: winRate.toFixed(1),
+        score: Math.round(calcRankScore(user.gamesWon, user.gamesPlayed)),
+      };
+    });
+
+    res.json({ players: usersWithStats, total: allUsers.length, limit, offset });
   } catch (error) {
     console.error('Erro ao buscar leaderboard:', error);
     res.status(500).json({ error: 'Erro ao buscar leaderboard' });
@@ -124,11 +145,16 @@ router.get('/user/:userId', authMiddleware, async (req, res) => {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 5);
 
-    // Rank calculation
+    // Rank calculation usando o mesmo score composto do leaderboard
     const allUsers = await prisma.user.findMany({
       where: { gamesPlayed: { gt: 0 } },
       select: { id: true, gamesWon: true, gamesPlayed: true },
-      orderBy: [{ gamesWon: 'desc' }, { gamesPlayed: 'desc' }],
+    });
+
+    allUsers.sort((a, b) => {
+      const scoreA = calcRankScore(a.gamesWon, a.gamesPlayed);
+      const scoreB = calcRankScore(b.gamesWon, b.gamesPlayed);
+      return scoreB - scoreA;
     });
 
     const rank = allUsers.findIndex(u => u.id === userId) + 1;

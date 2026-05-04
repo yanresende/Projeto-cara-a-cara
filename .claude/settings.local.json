@@ -5,7 +5,9 @@
       "Bash(Select-Object FullName)",
       "PowerShell(head -100)",
       "Bash(Select-Object FullName, Name)",
-      "Bash(Sort-Object FullName)"
+      "Bash(Sort-Object FullName)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\sares\\\\Downloads\\\\Projeto\\\\Projeto-cara-a-cara\" -Recurse -Directory)",
+      "PowerShell(head -50)"
     ]
   }
 }

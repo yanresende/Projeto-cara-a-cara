@@ -96,6 +96,12 @@ export const LobbyPage: React.FC = () => {
         <h1>Cara a Cara - Lobby</h1>
         <div className="header-right">
           <span>Bem-vindo, {user?.username}!</span>
+          <Button variant="secondary" size="small" onClick={() => navigate('/ranking')}>
+            Ranking
+          </Button>
+          <Button variant="secondary" size="small" onClick={() => navigate('/profile')}>
+            Perfil
+          </Button>
           <Button variant="danger" size="small" onClick={handleLogout}>
             Sair
           </Button>

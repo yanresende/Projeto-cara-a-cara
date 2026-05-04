@@ -71,6 +71,23 @@
 .user-league-chip:hover { opacity: 0.85; }
 .chip-lp { font-size: 12px; }
 
+.user-coins-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1.5px solid rgba(251, 191, 36, 0.5);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fbbf24;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  user-select: none;
+}
+.user-coins-chip:hover { opacity: 0.85; }
+
 .user-avatar {
   flex-shrink: 0;
   cursor: pointer;

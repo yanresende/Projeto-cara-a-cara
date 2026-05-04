@@ -1,0 +1,296 @@
+.shop-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  color: white;
+  padding: 0 0 40px;
+}
+
+.shop-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: white;
+  font-size: 20px;
+}
+
+/* Header */
+.shop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.shop-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.shop-back-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.shop-back-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.shop-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.shop-coins-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1.5px solid rgba(251, 191, 36, 0.5);
+  border-radius: 12px;
+  padding: 10px 20px;
+}
+
+.coins-icon {
+  font-size: 22px;
+}
+
+.coins-amount {
+  font-size: 24px;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
+.coins-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Earn hint */
+.shop-earn-hint {
+  text-align: center;
+  padding: 12px 40px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(251, 191, 36, 0.08);
+  border-bottom: 1px solid rgba(251, 191, 36, 0.15);
+}
+
+.shop-earn-hint strong {
+  color: #fbbf24;
+}
+
+/* Feedback */
+.shop-feedback {
+  max-width: 900px;
+  margin: 16px auto 0;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.shop-feedback-success {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10b981;
+  color: #6ee7b7;
+}
+
+.shop-feedback-error {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+}
+
+/* Category tabs */
+.shop-category-tabs {
+  display: flex;
+  gap: 12px;
+  padding: 24px 40px 0;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.category-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.category-tab:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: white;
+}
+
+.category-tab.active {
+  background: rgba(99, 102, 241, 0.4);
+  border-color: #6366f1;
+  color: white;
+}
+
+/* Shop grid */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 24px 40px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Shop card */
+.shop-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s;
+  position: relative;
+}
+
+.shop-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.shop-card-equipped {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
+}
+
+.shop-card-preview {
+  width: 100%;
+  height: 100px;
+  border-radius: 0;
+}
+
+.shop-card-equipped-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #6366f1;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.shop-card-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shop-card-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+}
+
+.shop-card-desc {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.4;
+}
+
+.shop-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.shop-card-free {
+  font-size: 13px;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.shop-card-owned {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.shop-card-price {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.shop-card-price-unaffordable {
+  color: rgba(251, 191, 36, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .shop-header {
+    padding: 16px 20px;
+  }
+
+  .shop-title {
+    font-size: 22px;
+  }
+
+  .shop-category-tabs {
+    padding: 16px 16px 0;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .category-tab {
+    font-size: 13px;
+    padding: 8px 14px;
+  }
+
+  .shop-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .shop-coins-badge {
+    padding: 8px 14px;
+  }
+
+  .coins-amount {
+    font-size: 20px;
+  }
+
+  .shop-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .shop-back-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}

@@ -168,6 +168,7 @@ export class GameService {
             gamesWon: { increment: 1 },
             gamesPlayed: { increment: 1 },
             leaguePoints: { increment: 20 },
+            coins: { increment: 15 },
           },
         });
         await prisma.user.update({

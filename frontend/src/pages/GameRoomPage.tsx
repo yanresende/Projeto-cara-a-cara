@@ -9,6 +9,7 @@ import { CharacterGrid } from '../components/game/CharacterGrid';
 import { GameResult } from '../components/game/GameResult';
 import { Button } from '../components/common/Button';
 import './GameRoomPage.css';
+import { ITEM_BY_ID, DEFAULT_EQUIPPED } from '../utils/shopItems';
 import type { Room } from '../types/index';
 
 export const GameRoomPage: React.FC = () => {
@@ -148,6 +149,10 @@ export const GameRoomPage: React.FC = () => {
   const opponentName = room.players.find(p => p.id !== user?.id)?.username || 'Adversário';
   const isWinner = winnerId === user?.id;
 
+  const equipped = user?.equippedItems ?? {};
+  const boardSkinClass = ITEM_BY_ID[equipped.boardSkin ?? DEFAULT_EQUIPPED.boardSkin]?.cssClass ?? '';
+  const cardFrameClass = ITEM_BY_ID[equipped.cardFrame ?? DEFAULT_EQUIPPED.cardFrame]?.cssClass ?? '';
+
   const renderTurnBanner = () => {
     if (!gameStarted) return null;
     const myTurn = isMyTurn;
@@ -271,7 +276,7 @@ export const GameRoomPage: React.FC = () => {
   };
 
   return (
-    <div className="game-room-page">
+    <div className={`game-room-page ${boardSkinClass}`}>
       <div className="game-header">
         <div className="header-left">
           <h1>{room.name}</h1>
@@ -355,6 +360,7 @@ export const GameRoomPage: React.FC = () => {
               guessingMode={guessingMode}
               interactive={isMyTurn && (turnPhase === 'my_turn_after_answer')}
               isLoading={isLoading}
+              cardFrameClass={cardFrameClass}
             />
           </div>
         </div>

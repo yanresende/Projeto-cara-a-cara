@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { AuthRequest, AuthResponse, UserProfile } from '../types/index';
+import { AuthRequest, AuthResponse, UserProfile, EquippedItems } from '../types/index';
 import { hashPassword, comparePassword } from '../utils/password';
 import { generateToken } from '../utils/jwt';
 import { authMiddleware } from '../middleware/auth';
@@ -27,6 +27,9 @@ function buildUserProfile(user: any): UserProfile {
     gamesPlayed: user.gamesPlayed,
     gamesWon: user.gamesWon,
     leaguePoints: user.leaguePoints,
+    coins: user.coins ?? 0,
+    equippedItems: (user.equippedItems as EquippedItems) ?? {},
+    ownedItemIds: (user.items ?? []).map((item: any) => item.itemId),
     isAdmin,
   };
 }
@@ -54,7 +57,8 @@ router.post('/signup', async (req, res): Promise<void> => {
 
     const passwordHash = await hashPassword(password);
     const user = await prisma.user.create({
-      data: { username, passwordHash }
+      data: { username, passwordHash },
+      include: { items: true },
     });
 
     const token = generateToken(user.id, false);
@@ -82,7 +86,7 @@ router.post('/login', async (req, res): Promise<void> => {
       return;
     }
 
-    const user = await prisma.user.findUnique({ where: { username } });
+    const user = await prisma.user.findUnique({ where: { username }, include: { items: true } });
     if (!user) {
       res.status(401).json({ error: 'Invalid credentials' });
       return;
@@ -113,7 +117,7 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response): Promi
       return;
     }
 
-    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const user = await prisma.user.findUnique({ where: { id: req.user.id }, include: { items: true } });
     if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;

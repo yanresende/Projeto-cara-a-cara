@@ -9,6 +9,7 @@ import { GameRoomPage } from './pages/GameRoomPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminPage } from './pages/AdminPage';
 import { RankingPage } from './pages/RankingPage';
+import { ShopPage } from './pages/ShopPage';
 import './App.css';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -90,6 +91,14 @@ function AppContent() {
         element={
           <ProtectedRoute>
             <RankingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/shop"
+        element={
+          <ProtectedRoute>
+            <ShopPage />
           </ProtectedRoute>
         }
       />

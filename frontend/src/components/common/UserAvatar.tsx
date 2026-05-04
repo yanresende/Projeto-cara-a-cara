@@ -7,11 +7,13 @@ interface UserAvatarProps {
   size?: number;
   className?: string;
   onClick?: () => void;
+  profileFrameClass?: string;
 }
 
-export const UserAvatar: React.FC<UserAvatarProps> = ({ username, avatarUrl, size = 40, className, onClick }) => {
+export const UserAvatar: React.FC<UserAvatarProps> = ({ username, avatarUrl, size = 40, className, onClick, profileFrameClass = '' }) => {
   const [imgFailed, setImgFailed] = useState(false);
 
+  const frameClass = profileFrameClass ? ` ${profileFrameClass}` : '';
   const style = { width: size, height: size, fontSize: size * 0.38 };
 
   if (avatarUrl && !imgFailed) {
@@ -19,7 +21,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ username, avatarUrl, siz
       <img
         src={avatarUrl}
         alt={username}
-        className={`user-avatar user-avatar-img ${className || ''}`}
+        className={`user-avatar user-avatar-img${frameClass} ${className || ''}`}
         style={{ width: size, height: size }}
         onError={() => setImgFailed(true)}
         onClick={onClick}
@@ -30,7 +32,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ username, avatarUrl, siz
 
   return (
     <div
-      className={`user-avatar user-avatar-initials ${className || ''}`}
+      className={`user-avatar user-avatar-initials${frameClass} ${className || ''}`}
       style={style}
       onClick={onClick}
       title={username}

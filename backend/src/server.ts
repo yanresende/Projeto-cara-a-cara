@@ -7,6 +7,7 @@ import authRouter from './routes/auth';
 import themesRouter from './routes/themes';
 import rankingRouter from './routes/ranking';
 import adminRouter from './routes/admin';
+import shopRouter from './routes/shop';
 import { roomService } from './services/roomService';
 import { gameService } from './services/gameService';
 import { socketAuthMiddleware } from './middleware/socketAuth';
@@ -38,6 +39,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/themes', themesRouter);
 app.use('/api/ranking', rankingRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/shop', shopRouter);
 
 io.use(socketAuthMiddleware);
 

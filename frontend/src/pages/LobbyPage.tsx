@@ -7,6 +7,7 @@ import { API_URL } from '../utils/constants';
 import type { Theme } from '../types/index';
 import { Button } from '../components/common/Button';
 import { UserAvatar } from '../components/common/UserAvatar';
+import { ITEM_BY_ID, DEFAULT_EQUIPPED } from '../utils/shopItems';
 import './LobbyPage.css';
 
 type League = 'bronze' | 'prata' | 'ouro' | 'diamante' | 'campeao';
@@ -101,6 +102,8 @@ export const LobbyPage: React.FC = () => {
   const lp = user?.leaguePoints ?? 0;
   const league = getUserLeague(lp);
   const badge = LEAGUE_BADGE[league];
+  const coins = user?.coins ?? 0;
+  const profileFrameClass = ITEM_BY_ID[user?.equippedItems?.profileFrame ?? DEFAULT_EQUIPPED.profileFrame]?.cssClass ?? '';
 
   const waitingRooms = rooms.filter(r => r.status === 'waiting');
   const playingRooms = rooms.filter(r => r.status === 'playing');
@@ -132,15 +135,26 @@ export const LobbyPage: React.FC = () => {
             <span className="chip-lp">{lp} LP</span>
           </div>
 
+          <div
+            className="user-coins-chip"
+            onClick={() => navigate('/shop')}
+            title="Ir à loja"
+          >
+            <span>🪙</span>
+            <span>{coins}</span>
+          </div>
+
           <UserAvatar
             username={user?.username || ''}
             avatarUrl={user?.avatarUrl}
             size={40}
             className="user-avatar"
             onClick={() => navigate('/profile')}
+            profileFrameClass={profileFrameClass}
           />
 
           <div className="header-nav">
+            <button className="header-nav-btn" onClick={() => navigate('/shop')}>Loja</button>
             <button className="header-nav-btn" onClick={() => navigate('/ranking')}>Ranking</button>
             <button className="header-nav-btn" onClick={() => navigate('/profile')}>Perfil</button>
             <button className="header-nav-btn header-nav-logout" onClick={handleLogout}>Sair</button>

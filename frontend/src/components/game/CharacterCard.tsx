@@ -8,6 +8,7 @@ interface CharacterCardProps {
   isDisabled?: boolean;
   guessingMode?: boolean;
   onClick: () => void;
+  cardFrameClass?: string;
 }
 
 export const CharacterCard: React.FC<CharacterCardProps> = ({
@@ -16,12 +17,14 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
   isDisabled = false,
   guessingMode = false,
   onClick,
+  cardFrameClass = '',
 }) => {
   const classes = [
     'character-card',
     isEliminated ? 'eliminated' : '',
     isDisabled ? 'disabled' : '',
     guessingMode && !isEliminated ? 'guessing-mode' : '',
+    cardFrameClass,
   ].filter(Boolean).join(' ');
 
   return (

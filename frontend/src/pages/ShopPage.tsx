@@ -1,0 +1,174 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { shopService } from '../services/shopService';
+import { Button } from '../components/common/Button';
+import {
+  SHOP_ITEMS,
+  ITEMS_BY_CATEGORY,
+  ITEM_BY_ID,
+  CATEGORY_LABELS,
+  DEFAULT_EQUIPPED,
+  type ShopCategory,
+  type ShopItem,
+} from '../utils/shopItems';
+import type { EquippedItems } from '../types/index';
+import './ShopPage.css';
+
+export const ShopPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { user, refreshUser } = useAuth();
+  const [activeCategory, setActiveCategory] = useState<ShopCategory>('boardSkin');
+  const [loadingItemId, setLoadingItemId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  if (!user) return <div className="shop-loading">Carregando...</div>;
+
+  const coins = user.coins ?? 0;
+  const ownedItemIds = new Set(user.ownedItemIds ?? []);
+  const equipped = user.equippedItems ?? {};
+
+  function getEquippedId(category: ShopCategory): string {
+    const val = equipped[category];
+    return val ?? DEFAULT_EQUIPPED[category];
+  }
+
+  function isOwned(item: ShopItem): boolean {
+    return item.price === 0 || ownedItemIds.has(item.id);
+  }
+
+  function isEquipped(item: ShopItem): boolean {
+    return getEquippedId(item.category) === item.id;
+  }
+
+  async function handleBuy(item: ShopItem) {
+    setLoadingItemId(item.id);
+    setFeedback(null);
+    try {
+      await shopService.buyItem(item.id);
+      await refreshUser();
+      setFeedback({ type: 'success', message: `${item.name} comprado com sucesso!` });
+    } catch (err) {
+      setFeedback({ type: 'error', message: err instanceof Error ? err.message : 'Erro ao comprar' });
+    } finally {
+      setLoadingItemId(null);
+    }
+  }
+
+  async function handleEquip(item: ShopItem) {
+    setLoadingItemId(item.id);
+    setFeedback(null);
+    try {
+      const newItemId = isEquipped(item) ? null : item.id;
+      await shopService.equipItem(newItemId, item.category as keyof EquippedItems);
+      await refreshUser();
+      setFeedback({
+        type: 'success',
+        message: newItemId ? `${item.name} equipado!` : `${item.name} removido.`,
+      });
+    } catch (err) {
+      setFeedback({ type: 'error', message: err instanceof Error ? err.message : 'Erro ao equipar' });
+    } finally {
+      setLoadingItemId(null);
+    }
+  }
+
+  const categories: ShopCategory[] = ['boardSkin', 'cardFrame', 'profileFrame'];
+
+  return (
+    <div className="shop-page">
+      <div className="shop-header">
+        <div className="shop-header-left">
+          <button className="shop-back-btn" onClick={() => navigate('/')}>← Voltar</button>
+          <h1 className="shop-title">Loja</h1>
+        </div>
+        <div className="shop-coins-badge">
+          <span className="coins-icon">🪙</span>
+          <span className="coins-amount">{coins}</span>
+          <span className="coins-label">moedas</span>
+        </div>
+      </div>
+
+      <div className="shop-earn-hint">
+        Ganhe <strong>15 moedas</strong> por vitória e troque por customizações exclusivas!
+      </div>
+
+      {feedback && (
+        <div className={`shop-feedback shop-feedback-${feedback.type}`}>
+          {feedback.message}
+        </div>
+      )}
+
+      <div className="shop-category-tabs">
+        {categories.map(cat => {
+          const cfg = CATEGORY_LABELS[cat];
+          return (
+            <button
+              key={cat}
+              className={`category-tab ${activeCategory === cat ? 'active' : ''}`}
+              onClick={() => { setActiveCategory(cat); setFeedback(null); }}
+            >
+              <span>{cfg.icon}</span>
+              <span>{cfg.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="shop-grid">
+        {ITEMS_BY_CATEGORY[activeCategory].map(item => {
+          const owned = isOwned(item);
+          const equipped_ = isEquipped(item);
+          const loading = loadingItemId === item.id;
+          const canAfford = coins >= item.price;
+
+          return (
+            <div key={item.id} className={`shop-card ${equipped_ ? 'shop-card-equipped' : ''}`}>
+              <div className="shop-card-preview" style={{ background: item.preview }} />
+
+              {equipped_ && <div className="shop-card-equipped-badge">Equipado</div>}
+
+              <div className="shop-card-body">
+                <h3 className="shop-card-name">{item.name}</h3>
+                <p className="shop-card-desc">{item.description}</p>
+
+                <div className="shop-card-footer">
+                  {item.price === 0 ? (
+                    <span className="shop-card-free">Grátis</span>
+                  ) : owned ? (
+                    <span className="shop-card-owned">Comprado</span>
+                  ) : (
+                    <span className={`shop-card-price ${!canAfford ? 'shop-card-price-unaffordable' : ''}`}>
+                      🪙 {item.price}
+                    </span>
+                  )}
+
+                  {owned ? (
+                    <Button
+                      size="small"
+                      variant={equipped_ ? 'secondary' : 'primary'}
+                      onClick={() => handleEquip(item)}
+                      isLoading={loading}
+                      disabled={loading}
+                    >
+                      {equipped_ ? 'Remover' : 'Equipar'}
+                    </Button>
+                  ) : (
+                    <Button
+                      size="small"
+                      onClick={() => handleBuy(item)}
+                      isLoading={loading}
+                      disabled={loading || !canAfford}
+                    >
+                      Comprar
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};

@@ -1,6 +1,12 @@
 // Backend type re-exports
 export type League = 'bronze' | 'prata' | 'ouro' | 'diamante' | 'campeao';
 
+export interface EquippedItems {
+  boardSkin?: string | null;
+  cardFrame?: string | null;
+  profileFrame?: string | null;
+}
+
 export interface UserProfile {
   id: string;
   username: string;
@@ -9,6 +15,9 @@ export interface UserProfile {
   gamesPlayed: number;
   gamesWon: number;
   leaguePoints: number;
+  coins: number;
+  equippedItems: EquippedItems;
+  ownedItemIds: string[];
   isAdmin?: boolean;
 }
 

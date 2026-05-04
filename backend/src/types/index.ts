@@ -20,6 +20,12 @@ export interface AuthResponse {
   };
 }
 
+export interface EquippedItems {
+  boardSkin?: string | null;
+  cardFrame?: string | null;
+  profileFrame?: string | null;
+}
+
 export interface UserProfile {
   id: string;
   username: string;
@@ -28,6 +34,9 @@ export interface UserProfile {
   gamesPlayed: number;
   gamesWon: number;
   leaguePoints: number;
+  coins: number;
+  equippedItems: EquippedItems;
+  ownedItemIds: string[];
   isAdmin?: boolean;
 }
 

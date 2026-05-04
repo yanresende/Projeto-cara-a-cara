@@ -16,6 +16,8 @@ model User {
   gamesPlayed   Int      @default(0)
   gamesWon      Int      @default(0)
   leaguePoints  Int      @default(0)
+  coins         Int      @default(0)
+  equippedItems Json?
 
   gamesWonAs    MatchHistory[] @relation("Winner")
   gamesLostAs   MatchHistory[] @relation("Loser")
@@ -23,9 +25,20 @@ model User {
   gamesAsQuestioner  Game[] @relation("Questioner")
   gamesAsThinker     Game[] @relation("Thinker")
   gamesAsWinner      Game[] @relation("Winner")
+  items         UserItem[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model UserItem {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId    String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, itemId])
 }
 
 model Theme {

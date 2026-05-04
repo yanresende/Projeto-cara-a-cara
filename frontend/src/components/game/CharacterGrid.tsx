@@ -10,6 +10,7 @@ interface CharacterGridProps {
   guessingMode?: boolean;
   interactive?: boolean;
   isLoading?: boolean;
+  cardFrameClass?: string;
 }
 
 export const CharacterGrid: React.FC<CharacterGridProps> = ({
@@ -19,6 +20,7 @@ export const CharacterGrid: React.FC<CharacterGridProps> = ({
   guessingMode = false,
   interactive = false,
   isLoading = false,
+  cardFrameClass = '',
 }) => {
   return (
     <div className="character-grid-container">
@@ -34,6 +36,7 @@ export const CharacterGrid: React.FC<CharacterGridProps> = ({
               isDisabled={isDisabled}
               guessingMode={guessingMode && interactive}
               onClick={() => onCardClick(char.id)}
+              cardFrameClass={cardFrameClass}
             />
           );
         })}

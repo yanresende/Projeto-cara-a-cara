@@ -36,6 +36,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRouter);
 app.use('/api/themes', themesRouter);
+app.use('/api/ranking', rankingRouter);
 app.use('/api/admin', adminRouter);
 
 io.use(socketAuthMiddleware);

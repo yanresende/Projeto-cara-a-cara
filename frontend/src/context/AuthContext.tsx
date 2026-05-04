@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authService } from '../services/authService';
 import { getToken, getUser, saveToken, saveUser, clearAuth } from '../utils/localStorage';
 import { socketService } from '../services/socketService';
+import { API_URL } from '../utils/constants';
 import type { UserProfile, AuthPayload } from '../types/index';
 
 interface AuthContextType {
@@ -14,6 +15,7 @@ interface AuthContextType {
   signup: (payload: AuthPayload) => Promise<void>;
   logout: () => void;
   setError: (error: string | null) => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,7 +27,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize from localStorage
+  const refreshUser = useCallback(async () => {
+    const currentToken = getToken();
+    if (!currentToken) return;
+    try {
+      const res = await fetch(`${API_URL}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${currentToken}` },
+      });
+      if (res.ok) {
+        const profile: UserProfile = await res.json();
+        setUser(profile);
+        saveUser(profile);
+      }
+    } catch {
+      // silently ignore refresh errors
+    }
+  }, []);
+
+  // Initialize from localStorage then refresh from server
   useEffect(() => {
     const storedToken = getToken();
     const storedUser = getUser();
@@ -37,9 +56,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!socketService.isConnected()) {
         socketService.connect(storedToken).catch(console.error);
       }
+      // Always fetch fresh stats from server on load
+      refreshUser().finally(() => setIsInitializing(false));
+    } else {
+      setIsInitializing(false);
     }
-    setIsInitializing(false);
-  }, []);
+  }, [refreshUser]);
 
   const login = async (payload: AuthPayload) => {
     setIsLoading(true);
@@ -86,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, isInitializing, error, login, signup, logout, setError }}>
+    <AuthContext.Provider value={{ user, token, isLoading, isInitializing, error, login, signup, logout, setError, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

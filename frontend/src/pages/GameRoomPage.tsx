@@ -14,7 +14,7 @@ import type { Room } from '../types/index';
 export const GameRoomPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const {
     gameState,
     characters,
@@ -107,8 +107,11 @@ export const GameRoomPage: React.FC = () => {
   }, [room?.status, gameStarted, roomId]);
 
   useEffect(() => {
-    if (gameEnded) setShowResult(true);
-  }, [gameEnded]);
+    if (gameEnded) {
+      setShowResult(true);
+      refreshUser();
+    }
+  }, [gameEnded, refreshUser]);
 
   useEffect(() => {
     // Sai do modo de adivinhação ao mudar de turno

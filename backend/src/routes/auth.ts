@@ -47,7 +47,7 @@ router.post('/signup', async (req, res): Promise<void> => {
     const token = generateToken(user.id, isAdmin);
     const response = {
       token,
-      user: { id: user.id, username: user.username, isAdmin }
+      user: { id: user.id, username: user.username, score: user.score, gamesPlayed: user.gamesPlayed, gamesWon: user.gamesWon, isAdmin }
     };
 
     res.status(201).json(response);
@@ -88,7 +88,7 @@ router.post('/login', async (req, res): Promise<void> => {
     const token = generateToken(user.id, isAdmin);
     const response = {
       token,
-      user: { id: user.id, username: user.username, isAdmin }
+      user: { id: user.id, username: user.username, score: user.score, gamesPlayed: user.gamesPlayed, gamesWon: user.gamesWon, isAdmin }
     };
 
     res.json(response);

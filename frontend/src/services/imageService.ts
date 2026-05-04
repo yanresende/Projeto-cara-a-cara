@@ -71,3 +71,11 @@ export async function uploadThemeCover(file: File, themeId: string): Promise<str
   await uploadBytes(storageRef, compressed, { contentType: 'image/jpeg' });
   return getDownloadURL(storageRef);
 }
+
+// Upload de capa de tema já recortada pelo CropEditor
+export async function uploadCroppedThemeCover(blob: Blob, themeId: string): Promise<string> {
+  const path = `themes/${themeId}/cover_${Date.now()}.jpg`;
+  const storageRef = ref(storage, path);
+  await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' });
+  return getDownloadURL(storageRef);
+}

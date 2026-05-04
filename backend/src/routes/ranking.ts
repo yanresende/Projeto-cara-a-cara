@@ -42,7 +42,15 @@ router.get('/leaderboard', authMiddleware, async (req, res) => {
     const allUsers = await prisma.user.findMany({
       where: { gamesPlayed: { gt: 0 } },
       select: { id: true, username: true, gamesPlayed: true, gamesWon: true, leaguePoints: true },
-      orderBy: [{ leaguePoints: 'desc' }, { gamesWon: 'desc' }],
+    });
+
+    // Ordenar: LP desc → winRate desc (desempate) → gamesWon desc
+    allUsers.sort((a, b) => {
+      if (b.leaguePoints !== a.leaguePoints) return b.leaguePoints - a.leaguePoints;
+      const wrA = a.gamesPlayed > 0 ? a.gamesWon / a.gamesPlayed : 0;
+      const wrB = b.gamesPlayed > 0 ? b.gamesWon / b.gamesPlayed : 0;
+      if (wrB !== wrA) return wrB - wrA;
+      return b.gamesWon - a.gamesWon;
     });
 
     // Atribuir ranks e ligas
@@ -87,11 +95,18 @@ router.get('/user/:userId', authMiddleware, async (req, res) => {
 
     if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
 
-    // Calcular rank global
+    // Calcular rank global com mesmo critério do leaderboard
     const allUsers = await prisma.user.findMany({
       where: { gamesPlayed: { gt: 0 } },
-      select: { id: true, leaguePoints: true, gamesWon: true },
-      orderBy: [{ leaguePoints: 'desc' }, { gamesWon: 'desc' }],
+      select: { id: true, leaguePoints: true, gamesWon: true, gamesPlayed: true },
+    });
+
+    allUsers.sort((a, b) => {
+      if (b.leaguePoints !== a.leaguePoints) return b.leaguePoints - a.leaguePoints;
+      const wrA = a.gamesPlayed > 0 ? a.gamesWon / a.gamesPlayed : 0;
+      const wrB = b.gamesPlayed > 0 ? b.gamesWon / b.gamesPlayed : 0;
+      if (wrB !== wrA) return wrB - wrA;
+      return b.gamesWon - a.gamesWon;
     });
 
     const rank = allUsers.findIndex(u => u.id === userId) + 1;

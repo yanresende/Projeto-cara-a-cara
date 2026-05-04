@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminService, type ThemeAdmin, type CharacterAdmin } from '../services/adminService';
-import { uploadCroppedImage, uploadThemeCover } from '../services/imageService';
+import { uploadCroppedImage, uploadCroppedThemeCover } from '../services/imageService';
 import { CropEditor, type CropEditorRef } from '../components/admin/CropEditor';
 import './AdminPage.css';
 
@@ -39,6 +39,7 @@ export function AdminPage() {
   const coverInputRef = useRef<HTMLInputElement>(null);
   const charInputRef = useRef<HTMLInputElement>(null);
   const cropEditorRef = useRef<CropEditorRef>(null);
+  const coverCropEditorRef = useRef<CropEditorRef>(null);
 
   useEffect(() => { loadThemes(); }, []);
 
@@ -106,7 +107,8 @@ export function AdminPage() {
     try {
       let coverImageUrl: string | undefined;
       if (themeForm.coverFile) {
-        coverImageUrl = await uploadThemeCover(themeForm.coverFile, editingTheme?.id || `temp_${Date.now()}`);
+        const blob = await coverCropEditorRef.current!.getCroppedBlob();
+        coverImageUrl = await uploadCroppedThemeCover(blob, editingTheme?.id || `temp_${Date.now()}`);
       } else if (editingTheme) {
         coverImageUrl = editingTheme.coverImageUrl;
       }
@@ -304,12 +306,35 @@ export function AdminPage() {
                     maxLength={120}
                   />
                   <label>Capa do tema</label>
-                  <div className="admin-upload-area" onClick={() => coverInputRef.current?.click()}>
-                    {themeForm.coverPreview
-                      ? <img src={themeForm.coverPreview} alt="preview" className="admin-upload-preview" />
-                      : <span className="admin-upload-placeholder">Clique para escolher imagem</span>
-                    }
-                  </div>
+
+                  {themeForm.coverFile ? (
+                    <div className="admin-crop-wrapper">
+                      <CropEditor ref={coverCropEditorRef} file={themeForm.coverFile} />
+                      <button
+                        type="button"
+                        className="admin-btn-change-photo"
+                        onClick={() => coverInputRef.current?.click()}
+                      >
+                        Trocar imagem
+                      </button>
+                    </div>
+                  ) : themeForm.coverPreview ? (
+                    <div className="admin-current-photo">
+                      <img src={themeForm.coverPreview} alt="atual" className="admin-current-photo-img" />
+                      <button
+                        type="button"
+                        className="admin-btn-change-photo"
+                        onClick={() => coverInputRef.current?.click()}
+                      >
+                        Trocar imagem
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="admin-upload-area admin-upload-area--square" onClick={() => coverInputRef.current?.click()}>
+                      <span className="admin-upload-placeholder">Clique para escolher imagem</span>
+                    </div>
+                  )}
+
                   <input ref={coverInputRef} type="file" accept="image/*" onChange={handleThemeFileChange} hidden />
                 </div>
               </>

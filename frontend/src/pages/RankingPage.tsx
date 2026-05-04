@@ -82,7 +82,6 @@ export const RankingPage: React.FC = () => {
   }, [fetchLeaderboard]);
 
   const podium = players.slice(0, 3);
-  const rest = players.slice(3);
   const myRankNotInTop = myRank && myRank.rank > 50;
 
   return (

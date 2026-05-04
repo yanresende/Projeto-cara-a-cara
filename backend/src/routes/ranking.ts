@@ -6,10 +6,10 @@ const router = Router();
 
 export type League = 'bronze' | 'prata' | 'ouro' | 'diamante' | 'campeao';
 
-// Campeão = top 20 com LP >= 500. Demais por threshold de LP.
+// Campeão = top 20 com LP >= 500. Diamante = posições 21-30 com LP >= 500.
 function getLeague(lp: number, rank: number): League {
   if (rank <= 20 && lp >= 500) return 'campeao';
-  if (lp >= 500) return 'diamante';
+  if (rank <= 30 && lp >= 500) return 'diamante';
   if (lp >= 250) return 'ouro';
   if (lp >= 100) return 'prata';
   return 'bronze';

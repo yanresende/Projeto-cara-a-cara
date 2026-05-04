@@ -39,7 +39,7 @@ const LEAGUE_ORDER: League[] = ['campeao', 'diamante', 'ouro', 'prata', 'bronze'
 
 function getLeague(lp: number, rank: number): League {
   if (rank <= 20 && lp >= 500) return 'campeao';
-  if (lp >= 500) return 'diamante';
+  if (rank <= 30 && lp >= 500) return 'diamante';
   if (lp >= 250) return 'ouro';
   if (lp >= 100) return 'prata';
   return 'bronze';
@@ -137,7 +137,7 @@ export const RankingPage: React.FC = () => {
               )}
               {myPlayer.league === 'diamante' && (
                 <div className="my-league-progress">
-                  <span>Top 20 com 500+ LP para alcançar Campeão</span>
+                  <span>Top 20 com 500+ LP para alcançar Campeão (você está entre os top 30)</span>
                 </div>
               )}
               {myPlayer.league === 'campeao' && (
@@ -186,10 +186,15 @@ export const RankingPage: React.FC = () => {
               })}
             </div>
 
-            {/* Aviso liga Campeão */}
+            {/* Avisos de ligas exclusivas */}
             {selectedLeague === 'campeao' && (
               <div className="campeao-banner">
                 👑 Liga Campeão — apenas os <strong>20 melhores</strong> com 500+ LP
+              </div>
+            )}
+            {selectedLeague === 'diamante' && (
+              <div className="campeao-banner" style={{ background: 'linear-gradient(135deg, #0891b2 0%, #0e7490 100%)' }}>
+                💎 Liga Diamante — apenas as <strong>10 vagas seguintes</strong> (posições 21–30) com 500+ LP
               </div>
             )}
 

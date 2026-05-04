@@ -4,9 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { shopService } from '../services/shopService';
 import { Button } from '../components/common/Button';
 import {
-  SHOP_ITEMS,
   ITEMS_BY_CATEGORY,
-  ITEM_BY_ID,
   CATEGORY_LABELS,
   DEFAULT_EQUIPPED,
   type ShopCategory,

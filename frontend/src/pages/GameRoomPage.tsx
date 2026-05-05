@@ -53,6 +53,7 @@ export const GameRoomPage: React.FC = () => {
     isMyTurn,
     gameMode,
     opponentEliminatedCount,
+    lastChanceSuccess,
     submitQuestion,
     answerQuestion,
     eliminateCharacter,
@@ -513,6 +514,7 @@ export const GameRoomPage: React.FC = () => {
           isWinner={isWinner}
           characterName={guessResult?.opponentSecretName || 'Personagem'}
           questionsCount={questions.length}
+          lastChanceSuccess={lastChanceSuccess}
           onClose={handleCloseResult}
         />
       )}

@@ -39,6 +39,7 @@ interface UseGameSocketResult {
   opponentEliminatedCount: number;
   lastChance: boolean;
   lastChancePlayerId: string | null;
+  lastChanceSuccess: boolean;
   submitQuestion: (question: string) => void;
   answerQuestion: (answer: 'sim' | 'nao') => void;
   eliminateCharacter: (characterId: string) => void;
@@ -73,6 +74,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
   const [opponentEliminatedCount, setOpponentEliminatedCount] = useState(0);
   const [lastChance, setLastChance] = useState(false);
   const [lastChancePlayerId, setLastChancePlayerId] = useState<string | null>(null);
+  const [lastChanceSuccess, setLastChanceSuccess] = useState(false);
 
   const isMyTurn = gameState?.currentTurnPlayerId === user?.id;
 
@@ -163,6 +165,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       setGameEnded(true);
       setWinnerId(data.winnerId);
       setWinnerName(data.winnerUsername);
+      setLastChanceSuccess(data.lastChanceSuccess || false);
       setIsLoading(false);
     };
 
@@ -363,6 +366,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     setOpponentEliminatedCount(0);
     setLastChance(false);
     setLastChancePlayerId(null);
+    setLastChanceSuccess(false);
   };
 
   return {
@@ -384,6 +388,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     opponentEliminatedCount,
     lastChance,
     lastChancePlayerId,
+    lastChanceSuccess,
     submitQuestion,
     answerQuestion,
     eliminateCharacter,

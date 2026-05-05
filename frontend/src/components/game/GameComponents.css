@@ -490,6 +490,26 @@
   flex: 1;
 }
 
+.last-chance-note {
+  margin-top: 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.last-chance-note--winner {
+  background: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  color: #92400e;
+}
+
+.last-chance-note--loser {
+  background: #d1fae5;
+  border-left: 4px solid #10b981;
+  color: #065f46;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .character-grid {

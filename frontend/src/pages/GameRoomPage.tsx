@@ -569,7 +569,7 @@ export const GameRoomPage: React.FC = () => {
               <h3>Personagens do adversário</h3>
               <div className="character-stats">
                 <span className="remaining-count">
-                  {characters.length - eliminatedCharacters.size} restantes
+                  {characters.length - opponentEliminatedCount} restantes
                 </span>
                 {isMyTurn && turnPhase !== 'my_turn_ask' && turnPhase !== 'my_turn_wait_answer' && (
                   <span className="eliminated-count">

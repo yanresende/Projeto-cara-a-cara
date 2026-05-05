@@ -60,12 +60,12 @@ function renderSkinEffect(skinClass: string): React.ReactNode {
   }
 
   if (skinClass === 'skin-sunset') {
-    const angles  = [-60, -30, 0, 30, 60];
-    const delays  = [0, 1.5, 0.5, 2, 1];
-    const widths  = [70, 90, 110, 85, 95];
+    const angles  = [-140, -100, -60, -20, 20, 60, 100, 140];
+    const delays  = [0, 0.8, 1.6, 0.4, 1.2, 2, 0.6, 1.4];
+    const widths  = [75, 85, 95, 80, 90, 100, 85, 95];
     return (
       <div className="skin-effect-layer" aria-hidden="true">
-        {[...Array(5)].map((_, i) => (
+        {[...Array(8)].map((_, i) => (
           <div
             key={i}
             className="sun-ray"

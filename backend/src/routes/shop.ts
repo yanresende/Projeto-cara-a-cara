@@ -84,7 +84,7 @@ router.post('/equip', authMiddleware, async (req: AuthRequest, res: Response): P
     if (!req.user?.id) { res.status(401).json({ error: 'Unauthorized' }); return; }
 
     const { itemId, category } = req.body as { itemId: string | null; category: keyof EquippedItems };
-    const validCategories: Array<keyof EquippedItems> = ['boardSkin', 'cardFrame', 'profileFrame'];
+    const validCategories: Array<keyof EquippedItems> = ['boardSkin', 'cardFrame', 'profileFrame', 'turnBanner'];
 
     if (!validCategories.includes(category)) { res.status(400).json({ error: 'Categoria inválida' }); return; }
 

@@ -702,6 +702,52 @@
   text-transform: uppercase;
 }
 
+/* Layout do banner do adversário */
+.turn-announcement-card--opp {
+  padding: 28px 48px;
+}
+
+.turn-announcement-player {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.turn-announcement-player-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.turn-announcement-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+}
+
+.turn-announcement-name {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: white;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Cor do nome herdada do banner do adversário */
+.turn-announcement-card.banner-default .turn-announcement-name   { color: #10b981; text-shadow: 0 0 16px rgba(16,185,129,0.8); }
+.turn-announcement-card.banner-lightning .turn-announcement-name { color: #60a5fa; text-shadow: 0 0 16px rgba(59,130,246,0.9); }
+.turn-announcement-card.banner-fire .turn-announcement-name      { color: #fb923c; text-shadow: 0 0 16px rgba(249,115,22,0.9); }
+.turn-announcement-card.banner-blizzard .turn-announcement-name  { color: #22d3ee; text-shadow: 0 0 16px rgba(6,182,212,0.9); }
+.turn-announcement-card.banner-stars .turn-announcement-name     { color: #fcd34d; text-shadow: 0 0 16px rgba(251,191,36,0.9); }
+.turn-announcement-card.banner-nebula .turn-announcement-name    { color: #a78bfa; text-shadow: 0 0 16px rgba(124,58,237,0.9); }
+
 /* banner-default — verde */
 .turn-announcement-card.banner-default {
   border-color: #10b981;

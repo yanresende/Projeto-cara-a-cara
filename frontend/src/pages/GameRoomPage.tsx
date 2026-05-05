@@ -158,6 +158,7 @@ export const GameRoomPage: React.FC = () => {
     if (!gameState || !gameStarted) return;
     const currentId = gameState.currentTurnPlayerId;
     if (prevTurnPlayerRef.current !== null && prevTurnPlayerRef.current !== currentId) {
+      prevTurnPlayerRef.current = currentId;
       setTurnBannerMyTurn(currentId === user?.id);
       setShowTurnBanner(true);
       const timer = setTimeout(() => setShowTurnBanner(false), 2500);
@@ -201,11 +202,11 @@ export const GameRoomPage: React.FC = () => {
   const cardFrameClass = ITEM_BY_ID[equipped.cardFrame ?? DEFAULT_EQUIPPED.cardFrame]?.cssClass ?? '';
   const myBannerClass = ITEM_BY_ID[equipped.turnBanner ?? DEFAULT_EQUIPPED.turnBanner]?.cssClass ?? 'banner-default';
   const oppBannerClass = ITEM_BY_ID[opponentProfile?.equippedItems?.turnBanner ?? DEFAULT_EQUIPPED.turnBanner]?.cssClass ?? 'banner-default';
+  const myProfileFrameClass = ITEM_BY_ID[equipped.profileFrame ?? DEFAULT_EQUIPPED.profileFrame]?.cssClass ?? '';
+  const oppProfileFrameClass = ITEM_BY_ID[opponentProfile?.equippedItems?.profileFrame ?? DEFAULT_EQUIPPED.profileFrame]?.cssClass ?? '';
 
   const renderPlayersBar = () => {
     if (!gameStarted) return null;
-    const myProfileFrameClass = ITEM_BY_ID[equipped.profileFrame ?? DEFAULT_EQUIPPED.profileFrame]?.cssClass ?? '';
-    const oppProfileFrameClass = ITEM_BY_ID[opponentProfile?.equippedItems?.profileFrame ?? DEFAULT_EQUIPPED.profileFrame]?.cssClass ?? '';
 
     const myLP = user?.leaguePoints ?? 0;
     const oppLP = opponentProfile?.leaguePoints ?? 0;
@@ -474,12 +475,29 @@ export const GameRoomPage: React.FC = () => {
 
       {showTurnBanner && (
         <div className="turn-announcement-overlay">
-          <div className={`turn-announcement-card ${turnBannerMyTurn ? myBannerClass : oppBannerClass}`}>
-            <span className="turn-announcement-icon">{turnBannerMyTurn ? '⚡' : '⏳'}</span>
-            <div className="turn-announcement-title">
-              {turnBannerMyTurn ? 'SEU TURNO!' : `Turno de ${opponentName}`}
+          {turnBannerMyTurn ? (
+            <div className={`turn-announcement-card ${myBannerClass}`}>
+              <span className="turn-announcement-icon">⚡</span>
+              <div className="turn-announcement-title">SEU TURNO!</div>
             </div>
-          </div>
+          ) : (
+            <div className={`turn-announcement-card turn-announcement-card--opp ${oppBannerClass}`}>
+              <div className="turn-announcement-player">
+                <UserAvatar
+                  username={opponentProfile?.username ?? opponentName}
+                  avatarUrl={opponentProfile?.avatarUrl}
+                  size={68}
+                  profileFrameClass={oppProfileFrameClass}
+                />
+                <div className="turn-announcement-player-info">
+                  <span className="turn-announcement-label">VEZ DE</span>
+                  <span className="turn-announcement-name">
+                    {opponentProfile?.username ?? opponentName}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

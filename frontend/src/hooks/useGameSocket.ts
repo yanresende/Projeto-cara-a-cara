@@ -150,6 +150,8 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     const handleLastChance = (data: any) => {
       setLastChance(true);
       setLastChancePlayerId(data.loserPlayerId);
+      // Atualiza currentTurnPlayerId para que isMyTurn reflita corretamente
+      setGameState(prev => prev ? { ...prev, currentTurnPlayerId: data.loserPlayerId } : null);
       if (data.loserPlayerId === user?.id) {
         setTurnPhase('last_chance_my_turn');
       } else {

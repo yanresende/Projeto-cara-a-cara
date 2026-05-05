@@ -493,7 +493,7 @@ export const GameRoomPage: React.FC = () => {
               eliminatedCharacters={eliminatedCharacters}
               onCardClick={handleGuessCharacter}
               guessingMode={guessingMode || turnPhase === 'last_chance_my_turn'}
-              interactive={isMyTurn && (turnPhase === 'my_turn_after_answer' || turnPhase === 'last_chance_my_turn')}
+              interactive={(isMyTurn && turnPhase === 'my_turn_after_answer') || turnPhase === 'last_chance_my_turn'}
               isLoading={isLoading}
               cardFrameClass={cardFrameClass}
             />

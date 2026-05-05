@@ -505,7 +505,7 @@ export const GameRoomPage: React.FC = () => {
   };
 
   return (
-    <div className={`game-room-page ${boardSkinClass}`}>
+    <div className={`game-room-page ${boardSkinClass}`} style={{ minHeight: '100vh' }}>
       {renderSkinEffect(boardSkinClass)}
       <div className="game-header">
         <div className="header-left">

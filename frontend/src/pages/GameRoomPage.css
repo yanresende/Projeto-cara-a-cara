@@ -37,31 +37,37 @@
 }
 
 .waiting-content {
-  background: white;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 16px;
   padding: 40px;
   text-align: center;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
   max-width: 500px;
+  color: white;
 }
 
 .waiting-content h2 {
   margin: 0 0 20px 0;
   font-size: 28px;
+  color: white;
 }
 
 .waiting-content p {
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.7);
   margin: 0 0 20px 0;
   font-size: 16px;
 }
 
 .player-item {
   padding: 12px;
-  background: #f3f4f6;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
   border-radius: 8px;
   margin: 10px 0;
-  color: #10b981;
+  color: #6ee7b7;
   font-weight: 600;
 }
 
@@ -276,7 +282,7 @@
 
 .secret-hint {
   font-size: 12px;
-  color: #9ca3af;
+  color: rgba(255, 255, 255, 0.5);
   margin: 0;
   font-style: italic;
 }
@@ -430,6 +436,16 @@
   border-left: 4px solid #10b981;
 }
 
+.last-chance-area {
+  border-left: 4px solid #f97316;
+  animation: last-chance-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes last-chance-pulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(249, 115, 22, 0.25); }
+  50% { box-shadow: 0 4px 30px rgba(249, 115, 22, 0.55); }
+}
+
 .guess-feedback {
   padding: 10px 16px;
   border-radius: 8px;
@@ -438,19 +454,21 @@
 }
 
 .guess-feedback.correct {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
 }
 
 .guess-feedback.incorrect {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
 }
 
 .error-message {
   padding: 12px 16px;
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
   border-left: 4px solid #ef4444;
   border-radius: 4px;
   font-size: 14px;
@@ -843,20 +861,7 @@
   100% { transform: scale(0.85) translateY(-20px); opacity: 0; }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   SKIN AMBIENT EFFECTS
-   ═══════════════════════════════════════════════════════════ */
-
-/* Layer base — behind all game UI */
-.skin-effect-layer {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Elevate game UI above the effect layer */
+/* Elevate game UI above the skin effect layer */
 .game-header,
 .players-bar,
 .game-waiting,
@@ -866,142 +871,3 @@
   z-index: 1;
 }
 
-/* ── FLORESTA ENCANTADA: Folhas caindo ── */
-@keyframes leaf-fall {
-  0%   { transform: translateY(-70px) rotate(0deg) translateX(0);    opacity: 0; }
-  5%   { opacity: 0.85; }
-  28%  { transform: translateY(28vh)  rotate(200deg) translateX(28px); }
-  55%  { transform: translateY(56vh)  rotate(420deg) translateX(-18px); }
-  80%  { transform: translateY(80vh)  rotate(620deg) translateX(22px); }
-  95%  { opacity: 0.7; }
-  100% { transform: translateY(110vh) rotate(750deg) translateX(-8px); opacity: 0; }
-}
-
-.forest-leaf {
-  position: absolute;
-  top: -60px;
-  animation: leaf-fall linear infinite;
-  user-select: none;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
-}
-
-/* ── PÔR DO SOL: Raios de luz ── */
-@keyframes ray-pulse {
-  0%, 100% { opacity: 0.12; }
-  50%       { opacity: 0.28; }
-}
-
-@keyframes ray-rotate {
-  0%   { transform: translateX(-50%) rotate(-90deg); }
-  50%  { transform: translateX(-50%) rotate(0deg); }
-  100% { transform: translateX(-50%) rotate(90deg); }
-}
-
-.sun-ray {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  height: 130%;
-  transform-origin: top center;
-  background: linear-gradient(to bottom, rgba(255, 215, 60, 0.35), transparent 65%);
-  border-radius: 0 0 60% 60%;
-  animation: ray-rotate 8s linear infinite, ray-pulse 4s ease-in-out infinite;
-  transform: translateX(-50%) rotate(var(--ray-angle, 0deg));
-}
-
-/* ── GALÁXIA: Estrelas piscando ── */
-@keyframes star-twinkle {
-  0%, 100% { opacity: 0.12; transform: scale(0.7); }
-  50%       { opacity: 1;    transform: scale(1.7); }
-}
-
-@keyframes star-shoot {
-  0%   { transform: translate(0, 0); opacity: 0;   width: 2px; }
-  3%   { opacity: 1;                 width: 70px; }
-  35%  { opacity: 0.8; }
-  45%  { transform: translate(280px, 130px); opacity: 0; width: 2px; }
-  100% { transform: translate(280px, 130px); opacity: 0; }
-}
-
-.galaxy-star {
-  position: absolute;
-  background: white;
-  border-radius: 50%;
-  box-shadow: 0 0 3px 1px rgba(255, 255, 255, 0.55);
-  animation: star-twinkle ease-in-out infinite;
-}
-
-.shooting-star {
-  position: absolute;
-  top: 12%;
-  left: 15%;
-  width: 2px;
-  height: 2px;
-  background: linear-gradient(to right, white 0%, rgba(255,255,255,0.4) 60%, transparent 100%);
-  border-radius: 2px;
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.9);
-  animation: star-shoot 12s ease-in infinite;
-  animation-delay: 4s;
-  opacity: 0;
-  rotate: 25deg;
-  transform-origin: left center;
-}
-
-/* ── CIDADE NEON: Linhas varrendo ── */
-@keyframes neon-sweep {
-  0%   { transform: translateX(-120px); opacity: 0; }
-  4%   { opacity: 1; }
-  96%  { opacity: 0.7; }
-  100% { transform: translateX(110vw);  opacity: 0; }
-}
-
-.neon-scan-line {
-  position: absolute;
-  left: 0;
-  width: 120px;
-  border-radius: 0 3px 3px 0;
-  animation: neon-sweep linear infinite;
-}
-
-/* ── ABISMO ESCURO: Vórtice ── */
-@keyframes void-spin-cw {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to   { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-@keyframes void-spin-ccw {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to   { transform: translate(-50%, -50%) rotate(-360deg); }
-}
-
-@keyframes void-core-pulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: 0.7; }
-  50%       { transform: translate(-50%, -50%) scale(1.18); opacity: 1;   }
-}
-
-.void-ring {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  border-radius: 50%;
-  border: 1px solid;
-  box-shadow: inset 0 0 40px rgba(60, 0, 200, 0.07);
-}
-
-.void-ring-cw  { animation: void-spin-cw  linear infinite; }
-.void-ring-ccw { animation: void-spin-ccw linear infinite; }
-
-.void-core {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #000 0%, rgba(10, 0, 30, 0.95) 40%, transparent 70%);
-  animation: void-core-pulse 3.5s ease-in-out infinite;
-  box-shadow:
-    0 0 50px 15px rgba(0, 0, 0, 0.9),
-    0 0 100px 35px rgba(10, 0, 60, 0.6),
-    0 0 180px 60px rgba(20, 0, 80, 0.3);
-}

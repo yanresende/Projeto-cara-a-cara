@@ -119,6 +119,9 @@ export interface GameRound {
   createdAt: Date;
   player1EliminatedCharacterIds: string[];
   player2EliminatedCharacterIds: string[];
+  lastChance?: boolean;
+  lastChanceSuccess?: boolean;
+  originalWinner?: string;
 }
 
 export interface GameMessage {

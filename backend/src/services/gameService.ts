@@ -48,6 +48,7 @@ export class GameService {
     if (game.currentTurnPlayerId !== playerId) throw new Error('Não é o seu turno');
     if (game.hasAskedThisTurn) throw new Error('Você já fez sua pergunta neste turno');
     if (game.waitingForAnswer) throw new Error('Aguardando resposta da pergunta anterior');
+    if (game.lastChance) throw new Error('Não é possível fazer perguntas durante a última chance');
 
     game.pendingQuestion = { content: question, askedBy: playerId };
     game.waitingForAnswer = true;
@@ -79,7 +80,7 @@ export class GameService {
     return q;
   }
 
-  async submitGuess(roomId: string, characterId: string, playerId: string): Promise<{ correct: boolean; characterName: string; opponentSecretName: string }> {
+  async submitGuess(roomId: string, characterId: string, playerId: string): Promise<{ correct: boolean; characterName: string; opponentSecretName: string; triggeredLastChance: boolean }> {
     const game = this.games.get(roomId);
     if (!game || game.completed) throw new Error('Nenhum jogo ativo nessa sala');
     if (game.currentTurnPlayerId !== playerId) throw new Error('Não é o seu turno');
@@ -98,21 +99,37 @@ export class GameService {
     };
     game.guesses.push(guess);
 
-    if (isCorrect) {
+    if (game.lastChance) {
+      // Tentativa de última chance do perdedor
       game.completed = true;
-      game.winner = playerId;
-    } else {
-      // Adivinhação errada: adversário vence
-      game.completed = true;
-      game.winner = this.getOpponentId(game, playerId);
+      game.winner = game.originalWinner!;
+      if (isCorrect) game.lastChanceSuccess = true;
+      await this.persistGame(game);
+      return {
+        correct: isCorrect,
+        characterName: guessedCharacter?.name || '',
+        opponentSecretName: opponentSecret?.name || '',
+        triggeredLastChance: false,
+      };
     }
 
-    await this.persistGame(game);
+    if (isCorrect) {
+      // Acertou: dá última chance ao perdedor antes de finalizar
+      game.lastChance = true;
+      game.originalWinner = playerId;
+      game.currentTurnPlayerId = this.getOpponentId(game, playerId);
+    } else {
+      // Adivinhação errada: adversário vence imediatamente
+      game.completed = true;
+      game.winner = this.getOpponentId(game, playerId);
+      await this.persistGame(game);
+    }
 
     return {
       correct: isCorrect,
       characterName: guessedCharacter?.name || '',
       opponentSecretName: opponentSecret?.name || '',
+      triggeredLastChance: isCorrect,
     };
   }
 
@@ -121,6 +138,7 @@ export class GameService {
     if (!game || game.completed) throw new Error('Nenhum jogo ativo nessa sala');
     if (game.currentTurnPlayerId !== playerId) throw new Error('Não é o seu turno');
     if (game.waitingForAnswer) throw new Error('Aguardando resposta antes de finalizar o turno');
+    if (game.lastChance) throw new Error('Não é possível finalizar o turno durante a última chance');
 
     game.currentTurnPlayerId = this.getOpponentId(game, playerId);
     game.hasAskedThisTurn = false;
@@ -179,14 +197,16 @@ export class GameService {
 
         // Buscar LP atual do perdedor para não ir abaixo de 0
         const loser = await prisma.user.findUnique({ where: { id: loserId }, select: { leaguePoints: true } });
-        const lpDeduct = Math.min(loser?.leaguePoints ?? 0, 10);
+        const lpWinnerGain = game.lastChanceSuccess ? 15 : 20;
+        const lpLoserDeductBase = game.lastChanceSuccess ? 5 : 10;
+        const lpDeduct = Math.min(loser?.leaguePoints ?? 0, lpLoserDeductBase);
 
         await prisma.user.update({
           where: { id: game.winner },
           data: {
             gamesWon: { increment: 1 },
             gamesPlayed: { increment: 1 },
-            leaguePoints: { increment: 20 },
+            leaguePoints: { increment: lpWinnerGain },
             coins: { increment: 15 },
           },
         });

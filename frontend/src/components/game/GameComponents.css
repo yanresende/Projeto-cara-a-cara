@@ -8,15 +8,22 @@
 .question-input input {
   flex: 1;
   padding: 12px 16px;
-  border: 2px solid #e5e7eb;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
   border-radius: 8px;
   font-size: 16px;
-  transition: border-color 0.2s;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.question-input input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .question-input input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .question-input button {
@@ -25,7 +32,8 @@
 
 /* Question History */
 .question-history {
-  background: #f9fafb;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 12px;
   margin-top: 20px;
@@ -34,11 +42,11 @@
 .question-history h3 {
   margin: 0 0 12px 0;
   font-size: 16px;
-  color: #1f2937;
+  color: white;
 }
 
 .question-history .empty {
-  color: #9ca3af;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 14px;
   margin: 0;
   text-align: center;
@@ -76,17 +84,17 @@
   font-size: 11px;
   font-weight: 600;
   margin-bottom: 3px;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.45);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
 
 .question-bubble.mine .bubble-author {
-  color: #6d28d9;
+  color: #c4b5fd;
 }
 
 .question-bubble.theirs .bubble-author {
-  color: #b45309;
+  color: #fcd34d;
 }
 
 .bubble-body {
@@ -101,19 +109,21 @@
 }
 
 .question-bubble.mine .bubble-body {
-  background: #ede9fe;
+  background: rgba(109, 40, 217, 0.45);
+  border: 1px solid rgba(167, 139, 250, 0.3);
   border-bottom-right-radius: 4px;
   flex-direction: row-reverse;
 }
 
 .question-bubble.theirs .bubble-body {
-  background: #fef3c7;
+  background: rgba(180, 83, 9, 0.35);
+  border: 1px solid rgba(253, 211, 77, 0.25);
   border-bottom-left-radius: 4px;
 }
 
 .bubble-text {
   flex: 1;
-  color: #1f2937;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .bubble-answer {
@@ -126,13 +136,15 @@
 }
 
 .bubble-answer.sim {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
 }
 
 .bubble-answer.nao {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.25);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
 }
 
 /* Character Grid */
@@ -153,9 +165,12 @@
   flex-direction: column;
   cursor: pointer;
   border-radius: 8px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid rgba(255, 255, 255, 0.18);
   overflow: hidden;
   transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .character-card:hover:not(.disabled):not(.eliminated) {
@@ -218,8 +233,8 @@
   font-size: 12px;
   font-weight: 600;
   text-align: center;
-  color: #1f2937;
-  background: white;
+  color: white;
+  background: rgba(0, 0, 0, 0.4);
   word-break: break-word;
   line-height: 1.3;
 }

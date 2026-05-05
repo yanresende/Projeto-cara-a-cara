@@ -11,6 +11,7 @@ import {
   type ShopItem,
 } from '../utils/shopItems';
 import type { EquippedItems } from '../types/index';
+import { SkinEffectLayer } from '../components/game/SkinEffectLayer';
 import './ShopPage.css';
 
 function getRarity(price: number): { label: string; cls: string } | null {
@@ -26,6 +27,7 @@ function renderPreview(item: ShopItem) {
     case 'boardSkin':
       return (
         <div className={`shop-card-preview skin-preview ${item.cssClass}`} style={{ background: item.preview }}>
+          <SkinEffectLayer skinClass={item.cssClass} />
           <div className="skin-mini-board">
             {[...Array(8)].map((_, i) => <div key={i} className="skin-mini-card" />)}
           </div>

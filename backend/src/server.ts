@@ -301,34 +301,69 @@ io.on('connection', async (socket: CustomSocket) => {
     try {
       const { roomId, characterId } = data;
 
+      const wasLastChance = gameService.getGameByRoomId(roomId)?.lastChance || false;
       const result = await gameService.submitGuess(roomId, characterId, socket.userId!);
       const room = roomService.getRoomById(roomId);
-      const winnerUsername = room?.players.find(p => {
-        const game = gameService.getGameByRoomId(roomId);
-        return p.id === game?.winner;
-      })?.username || 'Jogador';
-
       const game = gameService.getGameByRoomId(roomId);
 
-      io.to(roomId).emit('guess_result', {
-        characterName: result.characterName,
-        opponentSecretName: result.opponentSecretName,
-        isCorrect: result.correct,
-        message: result.correct
-          ? `${socket.username} acertou! Era ${result.characterName}!`
-          : `${socket.username} errou! Não era ${result.characterName}. O personagem correto era ${result.opponentSecretName}.`,
-        winnerId: game?.winner || '',
-        winnerUsername,
-      });
-
-      if (game?.completed) {
-        io.to(roomId).emit('game_ended', {
-          winnerId: game.winner || '',
-          winnerUsername,
-          message: result.correct
-            ? `${socket.username} adivinhou e venceu!`
-            : `${socket.username} errou a adivinhação e perdeu!`,
+      if (result.triggeredLastChance) {
+        // Acertou e ativou a última chance do adversário
+        const loserUsername = room?.players.find(p => p.id === game?.currentTurnPlayerId)?.username || 'Adversário';
+        io.to(roomId).emit('guess_result', {
+          characterName: result.characterName,
+          opponentSecretName: result.opponentSecretName,
+          isCorrect: true,
+          message: `${socket.username} acertou! Era ${result.characterName}!`,
+          winnerId: game?.originalWinner || '',
+          winnerUsername: socket.username,
         });
+        io.to(roomId).emit('last_chance', {
+          loserPlayerId: game?.currentTurnPlayerId || '',
+          loserUsername,
+          message: `${loserUsername} tem uma última chance de adivinhar!`,
+        });
+        console.log(`[Game] Última chance ativada na sala ${roomId}. Vez de: ${loserUsername}`);
+      } else if (game?.completed) {
+        const winnerUsername = room?.players.find(p => p.id === game?.winner)?.username || 'Jogador';
+
+        if (wasLastChance) {
+          // Resolução da última chance
+          io.to(roomId).emit('guess_result', {
+            characterName: result.characterName,
+            opponentSecretName: result.opponentSecretName,
+            isCorrect: result.correct,
+            message: result.correct
+              ? `${socket.username} também acertou na última chance! Era ${result.characterName}!`
+              : `${socket.username} errou na última chance! Não era ${result.characterName}. O personagem correto era ${result.opponentSecretName}.`,
+            winnerId: game.winner || '',
+            winnerUsername,
+            isLastChanceResult: true,
+            lastChanceSuccess: game.lastChanceSuccess || false,
+          });
+          io.to(roomId).emit('game_ended', {
+            winnerId: game.winner || '',
+            winnerUsername,
+            message: game.lastChanceSuccess
+              ? `${socket.username} acertou na última chance! ${winnerUsername} vence com pontuação reduzida!`
+              : `${socket.username} errou na última chance! ${winnerUsername} vence!`,
+            lastChanceSuccess: game.lastChanceSuccess || false,
+          });
+        } else {
+          // Adivinhação errada normal
+          io.to(roomId).emit('guess_result', {
+            characterName: result.characterName,
+            opponentSecretName: result.opponentSecretName,
+            isCorrect: false,
+            message: `${socket.username} errou! Não era ${result.characterName}. O personagem correto era ${result.opponentSecretName}.`,
+            winnerId: game.winner || '',
+            winnerUsername,
+          });
+          io.to(roomId).emit('game_ended', {
+            winnerId: game.winner || '',
+            winnerUsername,
+            message: `${socket.username} errou a adivinhação e perdeu!`,
+          });
+        }
 
         roomService.updateRoomStatus(roomId, 'finished');
         console.log(`[Game] Sala ${roomId} finalizada. Vencedor: ${winnerUsername}`);
@@ -442,6 +477,8 @@ io.on('connection', async (socket: CustomSocket) => {
         pendingQuestion: pendingQuestionText,
         player1EliminatedCount: game.player1EliminatedCharacterIds.length,
         player2EliminatedCount: game.player2EliminatedCharacterIds.length,
+        lastChance: game.lastChance || false,
+        lastChancePlayerId: game.lastChance ? game.currentTurnPlayerId : null,
       });
 
       callback({ success: true });

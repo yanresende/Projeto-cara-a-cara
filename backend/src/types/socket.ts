@@ -26,8 +26,9 @@ export interface ServerToClientEvents {
   question_pending: (data: { question: string; askedByUsername: string }) => void;
   question_answered: (data: { question: string; answer: 'sim' | 'nao'; askedByUsername: string }) => void;
   turn_changed: (data: { currentTurnPlayerId: string; currentTurnUsername: string }) => void;
-  guess_result: (data: { characterName: string; opponentSecretName: string; isCorrect: boolean; message: string; winnerId: string; winnerUsername: string }) => void;
-  game_ended: (data: { winnerId: string; winnerUsername: string; message: string }) => void;
+  guess_result: (data: { characterName: string; opponentSecretName: string; isCorrect: boolean; message: string; winnerId: string; winnerUsername: string; isLastChanceResult?: boolean; lastChanceSuccess?: boolean }) => void;
+  game_ended: (data: { winnerId: string; winnerUsername: string; message: string; lastChanceSuccess?: boolean }) => void;
+  last_chance: (data: { loserPlayerId: string; loserUsername: string; message: string }) => void;
   game_error: (data: { message: string }) => void;
   character_eliminated: (data: { playerId: string; characterId: string; remainingCount: number }) => void;
   game_state_restored: (data: any) => void;

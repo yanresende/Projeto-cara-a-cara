@@ -9,7 +9,9 @@ export type TurnPhase =
   | 'my_turn_wait_answer'
   | 'my_turn_after_answer'
   | 'opponent_turn'
-  | 'opponent_asking_me';
+  | 'opponent_asking_me'
+  | 'last_chance_my_turn'
+  | 'last_chance_opponent_turn';
 
 interface GameState {
   player1Id: string;
@@ -35,6 +37,8 @@ interface UseGameSocketResult {
   isMyTurn: boolean;
   gameMode: 'online' | 'local';
   opponentEliminatedCount: number;
+  lastChance: boolean;
+  lastChancePlayerId: string | null;
   submitQuestion: (question: string) => void;
   answerQuestion: (answer: 'sim' | 'nao') => void;
   eliminateCharacter: (characterId: string) => void;
@@ -67,6 +71,8 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
   const [winnerName, setWinnerName] = useState<string | null>(null);
   const [guessResult, setGuessResult] = useState<{ characterName: string; opponentSecretName: string; isCorrect: boolean; message: string } | null>(null);
   const [opponentEliminatedCount, setOpponentEliminatedCount] = useState(0);
+  const [lastChance, setLastChance] = useState(false);
+  const [lastChancePlayerId, setLastChancePlayerId] = useState<string | null>(null);
 
   const isMyTurn = gameState?.currentTurnPlayerId === user?.id;
 
@@ -141,6 +147,16 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       setIsLoading(false);
     };
 
+    const handleLastChance = (data: any) => {
+      setLastChance(true);
+      setLastChancePlayerId(data.loserPlayerId);
+      if (data.loserPlayerId === user?.id) {
+        setTurnPhase('last_chance_my_turn');
+      } else {
+        setTurnPhase('last_chance_opponent_turn');
+      }
+    };
+
     const handleGameEnded = (data: any) => {
       setGameEnded(true);
       setWinnerId(data.winnerId);
@@ -170,13 +186,21 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       setIsLoading(false);
       setError(null);
       setGuessResult(null);
+      setLastChance(data.lastChance || false);
+      setLastChancePlayerId(data.lastChancePlayerId || null);
 
       // Calcular quantos personagens do adversário foram eliminados
       const isPlayer1 = data.player1Id === user?.id;
       const opponentEliminatedCount = isPlayer1 ? data.player2EliminatedCount : data.player1EliminatedCount;
       setOpponentEliminatedCount(opponentEliminatedCount || 0);
 
-      if (mode === 'local') {
+      if (data.lastChance) {
+        if (data.lastChancePlayerId === user?.id) {
+          setTurnPhase('last_chance_my_turn');
+        } else {
+          setTurnPhase('last_chance_opponent_turn');
+        }
+      } else if (mode === 'local') {
         setTurnPhase(data.isMyTurn ? 'my_turn_after_answer' : 'opponent_turn');
       } else if (data.isMyTurn) {
         if (data.waitingForAnswer) {
@@ -211,6 +235,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     socketService.on('question_pending', handleQuestionPending);
     socketService.on('question_answered', handleQuestionAnswered);
     socketService.on('guess_result', handleGuessResult);
+    socketService.on('last_chance', handleLastChance);
     socketService.on('game_ended', handleGameEnded);
     socketService.on('character_eliminated', handleCharacterEliminated);
     socketService.on('error', handleError);
@@ -223,6 +248,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       socketService.off('question_pending', handleQuestionPending);
       socketService.off('question_answered', handleQuestionAnswered);
       socketService.off('guess_result', handleGuessResult);
+      socketService.off('last_chance', handleLastChance);
       socketService.off('game_ended', handleGameEnded);
       socketService.off('character_eliminated', handleCharacterEliminated);
       socketService.off('error', handleError);
@@ -333,6 +359,8 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     setWinnerName(null);
     setGuessResult(null);
     setOpponentEliminatedCount(0);
+    setLastChance(false);
+    setLastChancePlayerId(null);
   };
 
   return {
@@ -352,6 +380,8 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     isMyTurn,
     gameMode,
     opponentEliminatedCount,
+    lastChance,
+    lastChancePlayerId,
     submitQuestion,
     answerQuestion,
     eliminateCharacter,

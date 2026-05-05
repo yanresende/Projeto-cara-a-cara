@@ -13,6 +13,71 @@ import {
 import type { EquippedItems } from '../types/index';
 import './ShopPage.css';
 
+function getRarity(price: number): { label: string; cls: string } | null {
+  if (price === 0) return null;
+  if (price <= 150) return { label: 'Incomum', cls: 'rarity-uncommon' };
+  if (price <= 300) return { label: 'Raro', cls: 'rarity-rare' };
+  if (price <= 400) return { label: 'Épico', cls: 'rarity-epic' };
+  return { label: 'Lendário', cls: 'rarity-legendary' };
+}
+
+function renderPreview(item: ShopItem) {
+  switch (item.category) {
+    case 'boardSkin':
+      return (
+        <div className={`shop-card-preview skin-preview ${item.cssClass}`} style={{ background: item.preview }}>
+          <div className="skin-mini-board">
+            {[...Array(8)].map((_, i) => <div key={i} className="skin-mini-card" />)}
+          </div>
+        </div>
+      );
+
+    case 'cardFrame':
+      return (
+        <div className={`shop-card-preview frame-preview ${item.cssClass}`}>
+          <div className="frame-preview-outer" style={{ background: item.preview }}>
+            <div className="frame-preview-inner">
+              <span className="frame-preview-symbol">?</span>
+            </div>
+          </div>
+          <div className="frame-preview-outer frame-preview-outer--second" style={{ background: item.preview }}>
+            <div className="frame-preview-inner">
+              <span className="frame-preview-symbol">!</span>
+            </div>
+          </div>
+        </div>
+      );
+
+    case 'profileFrame':
+      return (
+        <div className={`shop-card-preview profile-preview ${item.cssClass}`}>
+          <div
+            className="profile-preview-ring"
+            style={{ background: item.id === 'no_frame' ? 'rgba(255,255,255,0.12)' : item.preview }}
+          >
+            <div className="profile-preview-avatar">😊</div>
+          </div>
+          <div className="profile-preview-label">Perfil</div>
+        </div>
+      );
+
+    case 'turnBanner':
+      return (
+        <div className={`shop-card-preview banner-preview ${item.cssClass}`}>
+          <div className="banner-preview-scene">
+            <div className="banner-preview-tag" style={{ background: item.preview }}>
+              <span className="banner-preview-text">✦ Seu Turno! ✦</span>
+            </div>
+            <div className="banner-preview-sub">Vez do jogador</div>
+          </div>
+        </div>
+      );
+
+    default:
+      return <div className="shop-card-preview" style={{ background: item.preview }} />;
+  }
+}
+
 export const ShopPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
@@ -78,7 +143,7 @@ export const ShopPage: React.FC = () => {
       <div className="shop-header">
         <div className="shop-header-left">
           <button className="shop-back-btn" onClick={() => navigate('/')}>← Voltar</button>
-          <h1 className="shop-title">Loja</h1>
+          <h1 className="shop-title">🛒 Loja</h1>
         </div>
         <div className="shop-coins-badge">
           <span className="coins-icon">🪙</span>
@@ -119,12 +184,20 @@ export const ShopPage: React.FC = () => {
           const equipped_ = isEquipped(item);
           const loading = loadingItemId === item.id;
           const canAfford = coins >= item.price;
+          const rarity = getRarity(item.price);
 
           return (
-            <div key={item.id} className={`shop-card ${equipped_ ? 'shop-card-equipped' : ''}`}>
-              <div className="shop-card-preview" style={{ background: item.preview }} />
+            <div
+              key={item.id}
+              className={`shop-card ${equipped_ ? 'shop-card-equipped' : ''} ${!owned && !canAfford ? 'shop-card-locked' : ''}`}
+            >
+              {renderPreview(item)}
 
-              {equipped_ && <div className="shop-card-equipped-badge">Equipado</div>}
+              {rarity && (
+                <div className={`shop-rarity-badge ${rarity.cls}`}>{rarity.label}</div>
+              )}
+
+              {equipped_ && <div className="shop-card-equipped-badge">✓ Equipado</div>}
 
               <div className="shop-card-body">
                 <h3 className="shop-card-name">{item.name}</h3>
@@ -132,9 +205,9 @@ export const ShopPage: React.FC = () => {
 
                 <div className="shop-card-footer">
                   {item.price === 0 ? (
-                    <span className="shop-card-free">Grátis</span>
+                    <span className="shop-card-free">✓ Grátis</span>
                   ) : owned ? (
-                    <span className="shop-card-owned">Comprado</span>
+                    <span className="shop-card-owned">✓ Seu</span>
                   ) : (
                     <span className={`shop-card-price ${!canAfford ? 'shop-card-price-unaffordable' : ''}`}>
                       🪙 {item.price}

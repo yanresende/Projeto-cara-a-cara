@@ -1,8 +1,79 @@
+/* ===================== KEYFRAME ANIMATIONS ===================== */
+
+@keyframes holographic-shift {
+  0%   { background-position: 0% 50%; filter: hue-rotate(0deg); }
+  50%  { background-position: 100% 50%; filter: hue-rotate(30deg); }
+  100% { background-position: 0% 50%; filter: hue-rotate(0deg); }
+}
+
+@keyframes fire-pulse {
+  0%, 100% { box-shadow: 0 0 8px #ef4444, 0 0 20px #f97316; }
+  50%       { box-shadow: 0 0 24px #ef4444, 0 0 50px #f97316, 0 0 8px #fbbf24; }
+}
+
+@keyframes champion-glow {
+  0%, 100% { box-shadow: 0 0 10px #7c3aed, 0 0 25px #a855f7; }
+  50%       { box-shadow: 0 0 30px #7c3aed, 0 0 60px #a855f7, 0 0 12px #c084fc; }
+}
+
+@keyframes neon-pulse {
+  0%, 100% { box-shadow: 0 0 8px #10b981, 0 0 20px #10b981; }
+  50%       { box-shadow: 0 0 24px #10b981, 0 0 50px #10b981, 0 0 70px rgba(16,185,129,0.3); }
+}
+
+@keyframes diamond-shimmer {
+  0%, 100% { box-shadow: 0 0 8px #06b6d4, 0 0 20px #818cf8; filter: brightness(1); }
+  50%       { box-shadow: 0 0 24px #06b6d4, 0 0 50px #818cf8, 0 0 10px #ffffff88; filter: brightness(1.25); }
+}
+
+@keyframes electric-flash {
+  0%, 80%, 100% { box-shadow: 0 0 8px #3b82f6, 0 0 20px #06b6d4; }
+  88%, 93%       { box-shadow: 0 0 40px #3b82f6, 0 0 80px #06b6d4, 0 0 12px #ffffff; }
+}
+
+@keyframes nebula-rotate {
+  0%   { filter: hue-rotate(0deg) brightness(1); }
+  50%  { filter: hue-rotate(40deg) brightness(1.2); }
+  100% { filter: hue-rotate(0deg) brightness(1); }
+}
+
+@keyframes star-shimmer {
+  0%, 100% { box-shadow: 0 0 8px #f59e0b, 0 0 20px #fbbf24; filter: brightness(1); }
+  50%       { box-shadow: 0 0 24px #f59e0b, 0 0 50px #fbbf24, 0 0 10px #fff; filter: brightness(1.3); }
+}
+
+@keyframes legendary-badge-glow {
+  0%, 100% { box-shadow: 0 0 4px #f59e0b; }
+  50%       { box-shadow: 0 0 12px #f59e0b, 0 0 6px #fbbf24; }
+}
+
+@keyframes card-float {
+  0%, 100% { transform: rotate(-3deg) translateY(0); }
+  50%       { transform: rotate(-3deg) translateY(-5px); }
+}
+
+@keyframes card-float-alt {
+  0%, 100% { transform: rotate(3deg) translateY(0); }
+  50%       { transform: rotate(3deg) translateY(-5px); }
+}
+
+@keyframes galaxy-drift {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
+  50%       { transform: translateY(-3px) scale(1.05); opacity: 1; }
+}
+
+@keyframes neon-card-flicker {
+  0%, 92%, 100% { border-color: rgba(196, 100, 255, 0.4); box-shadow: none; }
+  95%            { border-color: rgba(196, 100, 255, 0.9); box-shadow: 0 0 6px #c464ff; }
+}
+
+/* ===================== LAYOUT ===================== */
+
 .shop-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
   color: white;
-  padding: 0 0 40px;
+  padding: 0 0 60px;
 }
 
 .shop-loading {
@@ -14,14 +85,16 @@
   font-size: 20px;
 }
 
-/* Header */
+/* ===================== HEADER ===================== */
+
 .shop-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px 40px;
-  background: rgba(0, 0, 0, 0.25);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
 }
 
 .shop-header-left {
@@ -31,8 +104,8 @@
 }
 
 .shop-back-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   color: white;
   padding: 8px 16px;
   border-radius: 8px;
@@ -42,7 +115,7 @@
 }
 
 .shop-back-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .shop-title {
@@ -55,15 +128,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1.5px solid rgba(251, 191, 36, 0.5);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1.5px solid rgba(251, 191, 36, 0.55);
   border-radius: 12px;
   padding: 10px 20px;
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.15);
 }
 
-.coins-icon {
-  font-size: 22px;
-}
+.coins-icon { font-size: 22px; }
 
 .coins-amount {
   font-size: 24px;
@@ -73,26 +145,26 @@
 
 .coins-label {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.65);
 }
 
-/* Earn hint */
+/* ===================== EARN HINT ===================== */
+
 .shop-earn-hint {
   text-align: center;
   padding: 12px 40px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.65);
   background: rgba(251, 191, 36, 0.08);
   border-bottom: 1px solid rgba(251, 191, 36, 0.15);
 }
 
-.shop-earn-hint strong {
-  color: #fbbf24;
-}
+.shop-earn-hint strong { color: #fbbf24; }
 
-/* Feedback */
+/* ===================== FEEDBACK ===================== */
+
 .shop-feedback {
-  max-width: 900px;
+  max-width: 960px;
   margin: 16px auto 0;
   padding: 12px 20px;
   border-radius: 8px;
@@ -113,24 +185,26 @@
   color: #fca5a5;
 }
 
-/* Category tabs */
+/* ===================== CATEGORY TABS ===================== */
+
 .shop-category-tabs {
   display: flex;
   gap: 12px;
-  padding: 24px 40px 0;
-  max-width: 960px;
+  padding: 28px 40px 0;
+  max-width: 1040px;
   margin: 0 auto;
+  flex-wrap: wrap;
 }
 
 .category-tab {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
+  padding: 10px 22px;
   border-radius: 10px;
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.65);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -138,68 +212,373 @@
 }
 
 .category-tab:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.13);
   color: white;
 }
 
 .category-tab.active {
-  background: rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.35);
   border-color: #6366f1;
   color: white;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
 }
 
-/* Shop grid */
+/* ===================== GRID ===================== */
+
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-  padding: 24px 40px;
-  max-width: 960px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 22px;
+  padding: 28px 40px;
+  max-width: 1040px;
   margin: 0 auto;
 }
 
-/* Shop card */
+/* ===================== SHOP CARD ===================== */
+
 .shop-card {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
   overflow: hidden;
-  transition: transform 0.2s, border-color 0.2s;
+  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
   position: relative;
 }
 
 .shop-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-7px) scale(1.02);
   border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5);
 }
 
 .shop-card-equipped {
   border-color: #6366f1;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5), 0 8px 30px rgba(99, 102, 241, 0.25);
 }
+
+.shop-card-locked {
+  opacity: 0.65;
+}
+
+.shop-card-locked:hover {
+  transform: translateY(-4px);
+}
+
+/* ===================== PREVIEWS — SHARED ===================== */
 
 .shop-card-preview {
   width: 100%;
-  height: 100px;
-  border-radius: 0;
+  height: 155px;
+  position: relative;
+  overflow: hidden;
 }
+
+/* ===================== PREVIEW — BOARD SKIN ===================== */
+
+.skin-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.skin-mini-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 6px;
+  padding: 14px;
+  width: 100%;
+  height: 100%;
+}
+
+.skin-mini-card {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  position: relative;
+  overflow: hidden;
+}
+
+.skin-mini-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+}
+
+/* Neon City skin — cards flicker */
+.skin-neon-city .skin-mini-card {
+  border-color: rgba(196, 100, 255, 0.5);
+  animation: neon-card-flicker 3s ease-in-out infinite;
+}
+.skin-neon-city .skin-mini-card:nth-child(2n) { animation-delay: 1.1s; }
+.skin-neon-city .skin-mini-card:nth-child(3n) { animation-delay: 2.2s; }
+
+/* Galaxy skin — cards drift */
+.skin-galaxy .skin-mini-card {
+  animation: galaxy-drift 3s ease-in-out infinite;
+}
+.skin-galaxy .skin-mini-card:nth-child(even) { animation-delay: 1.5s; }
+
+/* ===================== PREVIEW — CARD FRAME ===================== */
+
+.frame-preview {
+  background: #1a1740;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.frame-preview-outer {
+  width: 64px;
+  height: 86px;
+  border-radius: 9px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  animation: card-float 3.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.frame-preview-outer--second {
+  animation: card-float-alt 3.5s ease-in-out infinite;
+  animation-delay: 0.5s;
+  width: 56px;
+  height: 75px;
+}
+
+.frame-preview-inner {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f0f0ff, #e8e8f8);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.frame-preview-symbol {
+  font-size: 26px;
+  font-weight: 900;
+  color: #1e1b4b;
+  user-select: none;
+}
+
+/* Holographic frame */
+.frame-holographic .frame-preview-outer {
+  background: linear-gradient(135deg, #ff0080, #ff8c00, #40e0d0, #8b5cf6, #ff0080) !important;
+  background-size: 300% 300% !important;
+  animation: card-float 3.5s ease-in-out infinite, holographic-shift 3s linear infinite;
+}
+.frame-holographic .frame-preview-outer--second {
+  animation: card-float-alt 3.5s ease-in-out infinite 0.5s, holographic-shift 3s linear infinite 1.5s;
+}
+
+/* Fire frame */
+.frame-fire .frame-preview-outer {
+  animation: card-float 3.5s ease-in-out infinite, fire-pulse 1.5s ease-in-out infinite;
+}
+.frame-fire .frame-preview-outer--second {
+  animation: card-float-alt 3.5s ease-in-out infinite 0.5s, fire-pulse 1.5s ease-in-out infinite 0.75s;
+}
+
+/* Ice frame */
+.frame-ice .frame-preview-outer {
+  animation: card-float 3.5s ease-in-out infinite, diamond-shimmer 2s ease-in-out infinite;
+}
+.frame-ice .frame-preview-outer--second {
+  animation: card-float-alt 3.5s ease-in-out infinite 0.5s, diamond-shimmer 2s ease-in-out infinite 1s;
+}
+
+/* ===================== PREVIEW — PROFILE FRAME ===================== */
+
+.profile-preview {
+  background: #1a1740;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.profile-preview-ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.profile-preview-avatar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #374151, #1f2937);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  user-select: none;
+}
+
+.profile-preview-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Champion ring */
+.profile-frame-champion .profile-preview-ring {
+  animation: champion-glow 2s ease-in-out infinite;
+}
+
+/* Neon ring */
+.profile-frame-neon .profile-preview-ring {
+  animation: neon-pulse 1.5s ease-in-out infinite;
+}
+
+/* Diamond ring */
+.profile-frame-diamond .profile-preview-ring {
+  animation: diamond-shimmer 2s ease-in-out infinite;
+}
+
+/* ===================== PREVIEW — TURN BANNER ===================== */
+
+.banner-preview {
+  background: #1a1740;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-preview-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: calc(100% - 32px);
+}
+
+.banner-preview-tag {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.banner-preview-text {
+  font-size: 15px;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  letter-spacing: 1.5px;
+  user-select: none;
+}
+
+.banner-preview-sub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* Lightning banner */
+.banner-lightning .banner-preview-tag {
+  animation: electric-flash 3s ease-in-out infinite;
+}
+
+/* Fire banner */
+.banner-fire .banner-preview-tag {
+  animation: fire-pulse 1.5s ease-in-out infinite;
+}
+
+/* Nebula banner */
+.banner-nebula .banner-preview-tag {
+  animation: nebula-rotate 4s ease-in-out infinite;
+}
+
+/* Stars banner */
+.banner-stars .banner-preview-tag {
+  animation: star-shimmer 2s ease-in-out infinite;
+}
+
+/* Blizzard banner */
+.banner-blizzard .banner-preview-tag {
+  animation: diamond-shimmer 2.5s ease-in-out infinite;
+}
+
+/* ===================== RARITY BADGE ===================== */
+
+.shop-rarity-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  z-index: 2;
+}
+
+.rarity-uncommon {
+  background: rgba(34, 197, 94, 0.2);
+  border: 1px solid #22c55e;
+  color: #86efac;
+}
+
+.rarity-rare {
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid #3b82f6;
+  color: #93c5fd;
+}
+
+.rarity-epic {
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid #a855f7;
+  color: #d8b4fe;
+}
+
+.rarity-legendary {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid #f59e0b;
+  color: #fbbf24;
+  animation: legendary-badge-glow 2s ease-in-out infinite;
+}
+
+/* ===================== EQUIPPED BADGE ===================== */
 
 .shop-card-equipped-badge {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 10px;
+  right: 10px;
   background: #6366f1;
   color: white;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 9px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 10px;
   border-radius: 20px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  z-index: 2;
 }
 
+/* ===================== CARD BODY ===================== */
+
 .shop-card-body {
-  padding: 14px;
+  padding: 14px 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -208,22 +587,22 @@
 .shop-card-name {
   margin: 0;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 800;
   color: white;
 }
 
 .shop-card-desc {
   margin: 0;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.55);
-  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.45;
 }
 
 .shop-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 .shop-card-free {
@@ -235,32 +614,27 @@
 .shop-card-owned {
   font-size: 13px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .shop-card-price {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 800;
   color: #fbbf24;
 }
 
 .shop-card-price-unaffordable {
-  color: rgba(251, 191, 36, 0.4);
+  color: rgba(251, 191, 36, 0.35);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .shop-header {
-    padding: 16px 20px;
-  }
+/* ===================== RESPONSIVE ===================== */
 
-  .shop-title {
-    font-size: 22px;
-  }
+@media (max-width: 768px) {
+  .shop-header { padding: 16px 20px; }
+  .shop-title { font-size: 22px; }
 
   .shop-category-tabs {
     padding: 16px 16px 0;
-    flex-wrap: wrap;
     gap: 8px;
   }
 
@@ -270,27 +644,30 @@
   }
 
   .shop-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 14px;
     padding: 16px;
   }
 }
 
 @media (max-width: 480px) {
-  .shop-coins-badge {
-    padding: 8px 14px;
-  }
-
-  .coins-amount {
-    font-size: 20px;
-  }
+  .shop-coins-badge { padding: 8px 14px; }
+  .coins-amount { font-size: 20px; }
 
   .shop-grid {
     grid-template-columns: 1fr 1fr;
+    padding: 12px;
+    gap: 12px;
   }
 
   .shop-back-btn {
     padding: 6px 12px;
     font-size: 13px;
   }
+
+  .shop-card-preview { height: 130px; }
+
+  .frame-preview-outer { width: 52px; height: 70px; }
+  .frame-preview-outer--second { width: 44px; height: 60px; }
+  .profile-preview-ring { width: 68px; height: 68px; }
 }

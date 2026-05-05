@@ -29,6 +29,8 @@ export interface ServerToClientEvents {
   guess_result: (data: { characterName: string; opponentSecretName: string; isCorrect: boolean; message: string; winnerId: string; winnerUsername: string }) => void;
   game_ended: (data: { winnerId: string; winnerUsername: string; message: string }) => void;
   game_error: (data: { message: string }) => void;
+  character_eliminated: (data: { playerId: string; characterId: string; remainingCount: number }) => void;
+  game_state_restored: (data: any) => void;
 }
 
 export interface ClientToServerEvents {
@@ -42,6 +44,8 @@ export interface ClientToServerEvents {
   answer_question: (data: { roomId: string; answer: 'sim' | 'nao' }, callback: (response: any) => void) => void;
   submit_guess: (data: { roomId: string; characterId: string }, callback: (response: any) => void) => void;
   end_turn: (data: { roomId: string }, callback: (response: any) => void) => void;
+  eliminate_character: (data: { roomId: string; characterId: string }, callback: (response: any) => void) => void;
+  request_game_state: (data: { roomId: string }, callback: (response: any) => void) => void;
 }
 
 export interface InterServerEvents {}

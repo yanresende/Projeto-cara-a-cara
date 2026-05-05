@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useGameSocket } from '../hooks/useGameSocket';
@@ -65,6 +65,9 @@ export const GameRoomPage: React.FC = () => {
   const [showResult, setShowResult] = useState(false);
   const [guessingMode, setGuessingMode] = useState(false);
   const [opponentProfile, setOpponentProfile] = useState<PublicProfile | null>(null);
+  const [showTurnBanner, setShowTurnBanner] = useState(false);
+  const [turnBannerMyTurn, setTurnBannerMyTurn] = useState(false);
+  const prevTurnPlayerRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!roomId) { navigate('/'); return; }
@@ -150,6 +153,18 @@ export const GameRoomPage: React.FC = () => {
     // Sai do modo de adivinhação ao mudar de turno
     if (!isMyTurn) setGuessingMode(false);
   }, [isMyTurn]);
+
+  useEffect(() => {
+    if (!gameState || !gameStarted) return;
+    const currentId = gameState.currentTurnPlayerId;
+    if (prevTurnPlayerRef.current !== null && prevTurnPlayerRef.current !== currentId) {
+      setTurnBannerMyTurn(currentId === user?.id);
+      setShowTurnBanner(true);
+      const timer = setTimeout(() => setShowTurnBanner(false), 2500);
+      return () => clearTimeout(timer);
+    }
+    prevTurnPlayerRef.current = currentId;
+  }, [gameState?.currentTurnPlayerId, gameStarted, user?.id]);
 
   const handleStartGame = () => {
     if (roomId) startGame(roomId);
@@ -456,6 +471,17 @@ export const GameRoomPage: React.FC = () => {
           questionsCount={questions.length}
           onClose={handleCloseResult}
         />
+      )}
+
+      {showTurnBanner && (
+        <div className="turn-announcement-overlay">
+          <div className={`turn-announcement-card ${turnBannerMyTurn ? 'my-turn' : 'opponent-turn'}`}>
+            <span className="turn-announcement-icon">{turnBannerMyTurn ? '⚡' : '⏳'}</span>
+            <div className="turn-announcement-title">
+              {turnBannerMyTurn ? 'SEU TURNO!' : `Turno de ${opponentName}`}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

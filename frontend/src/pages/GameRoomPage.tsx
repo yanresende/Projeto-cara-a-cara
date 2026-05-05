@@ -60,22 +60,28 @@ function renderSkinEffect(skinClass: string): React.ReactNode {
   }
 
   if (skinClass === 'skin-sunset') {
-    const angles  = [0, 60, 120, 180, 240, 300];
-    const delays  = [0, 1.2, 0.4, 1.6, 0.8, 2.0];
-    const widths  = [30, 45, 35, 50, 40, 55];
+    // Distribuir os feixes de luz em um círculo perfeito (360 graus)
+    const RAY_COUNT = 12;
+    const ANGLE_STEP = 360 / RAY_COUNT;
+
     return (
       <div className="skin-effect-layer" aria-hidden="true">
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="sun-ray"
-            style={{
-              '--ray-angle': `${angles[i]}deg`,
-              animationDelay: `${delays[i]}s`,
-              width: `${widths[i]}px`,
-            } as React.CSSProperties}
-          />
-        ))}
+        {[...Array(RAY_COUNT)].map((_, i) => {
+          // Alterna os raios entre "principais" (mais brilhantes/grossos) e "secundários" (mais opacos/finos)
+          const isMajor = i % 2 === 0;
+          return (
+            <div
+              key={i}
+              className="sun-ray"
+              style={{
+                '--ray-angle': `${i * ANGLE_STEP}deg`,
+                width: isMajor ? '22px' : '10px',
+                opacity: isMajor ? 0.7 : 0.3,
+                animationDelay: `${i * 0.15}s`,
+              } as React.CSSProperties}
+            />
+          );
+        })}
       </div>
     );
   }

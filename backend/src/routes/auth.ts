@@ -17,8 +17,13 @@ interface LoginBody {
   password?: string;
 }
 
+function isAdminUser(username: string): boolean {
+  const raw = process.env.ADMIN_USERNAMES ?? '';
+  return raw.split(',').map(u => u.trim()).filter(Boolean).includes(username);
+}
+
 function buildUserProfile(user: any): UserProfile {
-  const isAdmin = process.env.ADMIN_USERNAME ? user.username === process.env.ADMIN_USERNAME : false;
+  const isAdmin = isAdminUser(user.username);
   return {
     id: user.id,
     username: user.username,
@@ -98,7 +103,7 @@ router.post('/login', async (req, res): Promise<void> => {
       return;
     }
 
-    const isAdmin = process.env.ADMIN_USERNAME ? user.username === process.env.ADMIN_USERNAME : false;
+    const isAdmin = isAdminUser(user.username);
     const token = generateToken(user.id, isAdmin);
     const response = { token, user: buildUserProfile(user) };
 

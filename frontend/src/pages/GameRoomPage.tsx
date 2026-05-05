@@ -61,7 +61,7 @@ function renderSkinEffect(skinClass: string): React.ReactNode {
 
   if (skinClass === 'skin-sunset') {
     // Distribuir os feixes de luz em um círculo perfeito (360 graus)
-    const RAY_COUNT = 12;
+    const RAY_COUNT = 30;
     const ANGLE_STEP = 360 / RAY_COUNT;
 
     return (

@@ -1,0 +1,338 @@
+.profile-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 20px 60px;
+}
+
+/* ── Header ── */
+.profile-page-header {
+  width: 100%;
+  max-width: 640px;
+  margin-bottom: 24px;
+}
+
+/* ── Glassmorphism helper ── */
+.profile-glass {
+  background: rgba(255, 255, 255, 0.13);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+/* ── Hero Card ── */
+.profile-hero {
+  width: 100%;
+  max-width: 640px;
+  border-radius: 24px;
+  padding: 28px 28px 24px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 14px;
+  color: white;
+}
+
+.profile-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.profile-avatar-edit-btn {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #6366f1;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s;
+  line-height: 1;
+}
+.profile-avatar-edit-btn:hover { background: #4f46e5; }
+
+.profile-hero-info { flex: 1; min-width: 0; }
+
+.profile-username {
+  margin: 0 0 2px;
+  font-size: 26px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-change-avatar-link {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  margin-bottom: 14px;
+  display: inline-block;
+  font-family: inherit;
+}
+.profile-change-avatar-link:hover { color: rgba(255, 255, 255, 0.95); }
+
+.profile-league-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border-radius: 40px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1.5px solid rgba(255, 255, 255, 0.32);
+  backdrop-filter: blur(8px);
+}
+
+.profile-league-pill-icon { font-size: 20px; line-height: 1; }
+
+.profile-league-pill-name {
+  font-weight: 800;
+  font-size: 15px;
+  color: white;
+  line-height: 1.1;
+}
+
+.profile-league-pill-lp {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 500;
+}
+
+/* ── Coins Card ── */
+.profile-coins-card {
+  width: 100%;
+  max-width: 640px;
+  border-radius: 16px;
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  color: white;
+  margin-bottom: 14px;
+  text-decoration: none;
+}
+.profile-coins-card:hover {
+  background: rgba(255, 255, 255, 0.22) !important;
+  transform: translateY(-1px);
+}
+
+.profile-coins-icon { font-size: 34px; line-height: 1; }
+.profile-coins-amount { font-size: 22px; font-weight: 800; line-height: 1.1; }
+.profile-coins-hint { font-size: 12px; color: rgba(255, 255, 255, 0.68); margin-top: 2px; }
+.profile-coins-arrow { margin-left: auto; font-size: 20px; opacity: 0.6; }
+
+/* ── Generic Section ── */
+.profile-section {
+  width: 100%;
+  max-width: 640px;
+  border-radius: 20px;
+  padding: 22px 24px;
+  margin-bottom: 14px;
+  color: white;
+}
+
+.profile-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.profile-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.profile-section-action {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+.profile-section-action:hover { color: white; }
+
+/* ── Stats Grid ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  padding: 14px 8px;
+  text-align: center;
+}
+
+.stat-card-value {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 5px;
+  color: white;
+}
+.stat-card-value.wins   { color: #34d399; }
+.stat-card-value.losses { color: #f87171; }
+.stat-card-value.lp     { color: #fbbf24; }
+
+.stat-card-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+}
+
+/* ── Win Rate Bar ── */
+.winrate-section { margin-top: 14px; }
+
+.winrate-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.winrate-row-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.winrate-row-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: white;
+}
+
+.winrate-track {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.winrate-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #34d399, #059669);
+  transition: width 0.6s ease;
+}
+
+/* ── LP Row ── */
+.lp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.lp-row-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.lp-row-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
+/* ── Customizations ── */
+.customizations-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.customization-card {
+  flex: 1 1 150px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 12px 14px;
+  min-width: 130px;
+}
+
+.customization-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.customization-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.customization-preview {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.customization-name {
+  font-weight: 700;
+  font-size: 13px;
+  color: white;
+}
+
+/* ── Action Buttons ── */
+.profile-actions {
+  width: 100%;
+  max-width: 640px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 520px) {
+  .profile-hero { flex-direction: column; align-items: flex-start; }
+  .profile-hero { padding: 22px 20px; gap: 16px; }
+  .profile-username { font-size: 22px; }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+  .profile-actions { grid-template-columns: 1fr; }
+  .customizations-grid { flex-direction: column; }
+}

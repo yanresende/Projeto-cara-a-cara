@@ -6,6 +6,7 @@ import { UserAvatar } from '../components/common/UserAvatar';
 import { AvatarPicker } from '../components/common/AvatarPicker';
 import { ITEM_BY_ID, DEFAULT_EQUIPPED } from '../utils/shopItems';
 import type { League } from '../types/index';
+import './ProfilePage.css';
 
 const LEAGUE_CONFIG: Record<League, { label: string; icon: string; color: string; bg: string }> = {
   campeao:  { label: 'Campeão',  icon: '👑', color: '#7c3aed', bg: '#f5f3ff' },
@@ -52,130 +53,131 @@ export const ProfilePage: React.FC = () => {
   const cardFrameItem = ITEM_BY_ID[equipped.cardFrame ?? DEFAULT_EQUIPPED.cardFrame];
 
   return (
-    <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
+    <div className="profile-page">
 
-      {/* Avatar + nome */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
-        <div style={{ position: 'relative' }}>
+      {/* Voltar */}
+      <div className="profile-page-header">
+        <Button variant="secondary" size="small" onClick={() => navigate('/')}>← Lobby</Button>
+      </div>
+
+      {/* Hero: avatar + nome + liga */}
+      <div className="profile-hero profile-glass">
+        <div className="profile-avatar-wrap">
           <UserAvatar
             username={user.username}
             avatarUrl={user.avatarUrl}
-            size={88}
+            size={90}
             profileFrameClass={profileFrameItem?.cssClass}
           />
           <button
+            className="profile-avatar-edit-btn"
             onClick={() => setShowAvatarPicker(true)}
             title="Alterar foto de perfil"
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              right: 0,
-              width: 26,
-              height: 26,
-              borderRadius: '50%',
-              background: '#6366f1',
-              border: '2px solid #1a1a2e',
-              color: 'white',
-              fontSize: '13px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 0,
-            }}
           >
             ✎
           </button>
         </div>
-        <div>
-          <h1 style={{ margin: 0 }}>{user.username}</h1>
+
+        <div className="profile-hero-info">
+          <h1 className="profile-username">{user.username}</h1>
           <button
+            className="profile-change-avatar-link"
             onClick={() => setShowAvatarPicker(true)}
-            style={{
-              marginTop: '6px',
-              background: 'none',
-              border: 'none',
-              color: '#6366f1',
-              cursor: 'pointer',
-              fontSize: '0.85rem',
-              padding: 0,
-              textDecoration: 'underline',
-            }}
           >
             {user.avatarUrl ? 'Alterar foto de perfil' : 'Adicionar foto de perfil'}
           </button>
-        </div>
-      </div>
-
-      {/* Badge de liga */}
-      <div style={{
-        display: 'inline-flex', alignItems: 'center', gap: '10px',
-        background: cfg.bg, border: `2px solid ${cfg.color}`,
-        borderRadius: '12px', padding: '12px 20px', marginBottom: '20px',
-      }}>
-        <span style={{ fontSize: '36px' }}>{cfg.icon}</span>
-        <div>
-          <div style={{ fontWeight: 800, fontSize: '20px', color: cfg.color }}>{cfg.label}</div>
-          <div style={{ fontSize: '14px', color: '#374151' }}><strong>{lp} LP</strong></div>
+          <div className="profile-league-pill">
+            <span className="profile-league-pill-icon">{cfg.icon}</span>
+            <div>
+              <div className="profile-league-pill-name">{cfg.label}</div>
+              <div className="profile-league-pill-lp">{lp} LP</div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Moedas */}
-      <div style={{
-        display: 'inline-flex', alignItems: 'center', gap: '10px',
-        background: '#fefce8', border: '2px solid #fbbf24',
-        borderRadius: '12px', padding: '12px 20px', marginBottom: '20px',
-        cursor: 'pointer',
-      }} onClick={() => navigate('/shop')} title="Ir para a loja">
-        <span style={{ fontSize: '28px' }}>🪙</span>
+      <div
+        className="profile-coins-card profile-glass"
+        onClick={() => navigate('/shop')}
+        title="Ir para a loja"
+        role="button"
+        tabIndex={0}
+        onKeyDown={e => e.key === 'Enter' && navigate('/shop')}
+      >
+        <span className="profile-coins-icon">🪙</span>
         <div>
-          <div style={{ fontWeight: 800, fontSize: '20px', color: '#d97706' }}>{coins} moedas</div>
-          <div style={{ fontSize: '12px', color: '#92400e' }}>+15 por vitória · <span style={{ color: '#6366f1', textDecoration: 'underline' }}>Ir à loja</span></div>
+          <div className="profile-coins-amount">{coins} moedas</div>
+          <div className="profile-coins-hint">+15 por vitória · Ir à loja</div>
+        </div>
+        <span className="profile-coins-arrow">›</span>
+      </div>
+
+      {/* Estatísticas */}
+      <div className="profile-section profile-glass">
+        <div className="profile-section-title">Estatísticas</div>
+
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-card-value">{user.gamesPlayed}</div>
+            <div className="stat-card-label">Jogos</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-value wins">{user.gamesWon}</div>
+            <div className="stat-card-label">Vitórias</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-value losses">{user.gamesPlayed - user.gamesWon}</div>
+            <div className="stat-card-label">Derrotas</div>
+          </div>
+        </div>
+
+        <div className="winrate-section">
+          <div className="winrate-row">
+            <span className="winrate-row-label">Taxa de Vitória</span>
+            <span className="winrate-row-value">{winRate}%</span>
+          </div>
+          <div className="winrate-track">
+            <div className="winrate-fill" style={{ width: `${winRate}%` }} />
+          </div>
+        </div>
+
+        <div className="lp-row">
+          <span className="lp-row-label">League Points</span>
+          <span className="lp-row-value">{lp} LP</span>
         </div>
       </div>
 
-      <div style={{ background: 'white', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-        <h2>Estatísticas</h2>
-        <p><strong>Jogos Jogados:</strong> {user.gamesPlayed}</p>
-        <p><strong>Vitórias:</strong> {user.gamesWon}</p>
-        <p><strong>Derrotas:</strong> {user.gamesPlayed - user.gamesWon}</p>
-        <p><strong>Taxa de Vitória:</strong> {winRate}%</p>
-        <p><strong>League Points:</strong> {lp} LP</p>
-      </div>
-
-      {/* Customizações equipadas */}
-      <div style={{ background: 'white', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <h2 style={{ margin: 0 }}>Customizações</h2>
-          <button onClick={() => navigate('/shop')} style={{ background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer', fontSize: '14px', textDecoration: 'underline' }}>
+      {/* Customizações */}
+      <div className="profile-section profile-glass">
+        <div className="profile-section-head">
+          <span className="profile-section-title">Customizações</span>
+          <button className="profile-section-action" onClick={() => navigate('/shop')}>
             Gerenciar loja →
           </button>
         </div>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+        <div className="customizations-grid">
           {[
             { label: '🎨 Tabuleiro', item: boardSkinItem },
-            { label: '🖼️ Borda dos Cards', item: cardFrameItem },
-            { label: '👤 Moldura do Perfil', item: profileFrameItem },
+            { label: '🖼️ Bordas', item: cardFrameItem },
+            { label: '👤 Moldura', item: profileFrameItem },
           ].map(({ label, item }) => (
-            <div key={label} style={{
-              flex: '1 1 160px',
-              background: '#f9fafb',
-              border: '1.5px solid #e5e7eb',
-              borderRadius: '10px',
-              padding: '12px',
-              minWidth: '140px',
-            }}>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '6px' }}>{label}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: 28, height: 28, borderRadius: '6px', background: item?.preview || '#e5e7eb', flexShrink: 0 }} />
-                <span style={{ fontWeight: 700, fontSize: '14px', color: '#1f2937' }}>{item?.name ?? 'Padrão'}</span>
+            <div key={label} className="customization-card">
+              <div className="customization-label">{label}</div>
+              <div className="customization-item">
+                <div
+                  className="customization-preview"
+                  style={{ background: item?.preview || '#6b7280' }}
+                />
+                <span className="customization-name">{item?.name ?? 'Padrão'}</span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+      {/* Ações */}
+      <div className="profile-actions">
         <Button onClick={() => navigate('/shop')}>Loja</Button>
         <Button onClick={() => navigate('/ranking')}>Ver Ranking</Button>
         <Button variant="secondary" onClick={() => navigate('/')}>Voltar ao Lobby</Button>

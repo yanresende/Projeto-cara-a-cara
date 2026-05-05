@@ -224,10 +224,23 @@ export const RankingPage: React.FC = () => {
                       {displayedPlayers.map(p => {
                         const isMe = p.id === user?.id;
                         const pc = LEAGUE_CONFIG[p.league];
+                        const rowClass = isMe
+                          ? 'ranking-row-me'
+                          : p.rank === 1 ? 'ranking-row-top1'
+                          : p.rank === 2 ? 'ranking-row-top2'
+                          : p.rank === 3 ? 'ranking-row-top3'
+                          : '';
+                        const rankDisplay = p.rank === 1 ? '🥇'
+                          : p.rank === 2 ? '🥈'
+                          : p.rank === 3 ? '🥉'
+                          : p.rank;
                         return (
-                          <tr key={p.id} className={isMe ? 'ranking-row-me' : ''}>
+                          <tr key={p.id} className={rowClass}>
                             <td className="ranking-rank">
-                              <span className="rank-number">{p.rank}</span>
+                              {typeof rankDisplay === 'string'
+                                ? <span className="rank-medal">{rankDisplay}</span>
+                                : <span className="rank-number">{rankDisplay}</span>
+                              }
                             </td>
                             <td className="ranking-username">
                               <UserAvatar

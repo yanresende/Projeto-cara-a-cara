@@ -34,6 +34,7 @@ interface UseGameSocketResult {
   guessResult: { characterName: string; opponentSecretName: string; isCorrect: boolean; message: string } | null;
   isMyTurn: boolean;
   gameMode: 'online' | 'local';
+  opponentEliminatedCount: number;
   submitQuestion: (question: string) => void;
   answerQuestion: (answer: 'sim' | 'nao') => void;
   eliminateCharacter: (characterId: string) => void;
@@ -65,6 +66,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
   const [winnerId, setWinnerId] = useState<string | null>(null);
   const [winnerName, setWinnerName] = useState<string | null>(null);
   const [guessResult, setGuessResult] = useState<{ characterName: string; opponentSecretName: string; isCorrect: boolean; message: string } | null>(null);
+  const [opponentEliminatedCount, setOpponentEliminatedCount] = useState(0);
 
   const isMyTurn = gameState?.currentTurnPlayerId === user?.id;
 
@@ -169,6 +171,11 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       setError(null);
       setGuessResult(null);
 
+      // Calcular quantos personagens do adversário foram eliminados
+      const isPlayer1 = data.player1Id === user?.id;
+      const opponentEliminatedCount = isPlayer1 ? data.player2EliminatedCount : data.player1EliminatedCount;
+      setOpponentEliminatedCount(opponentEliminatedCount || 0);
+
       if (mode === 'local') {
         setTurnPhase(data.isMyTurn ? 'my_turn_after_answer' : 'opponent_turn');
       } else if (data.isMyTurn) {
@@ -192,6 +199,12 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       setIsLoading(false);
     };
 
+    const handleCharacterEliminated = (data: any) => {
+      if (data.playerId !== user?.id) {
+        setOpponentEliminatedCount(data.remainingCount);
+      }
+    };
+
     socketService.on('game_started', handleGameStarted);
     socketService.on('game_state_restored', handleGameStateRestored);
     socketService.on('turn_changed', handleTurnChanged);
@@ -199,6 +212,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     socketService.on('question_answered', handleQuestionAnswered);
     socketService.on('guess_result', handleGuessResult);
     socketService.on('game_ended', handleGameEnded);
+    socketService.on('character_eliminated', handleCharacterEliminated);
     socketService.on('error', handleError);
     socketService.on('game_error', handleError);
 
@@ -210,6 +224,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
       socketService.off('question_answered', handleQuestionAnswered);
       socketService.off('guess_result', handleGuessResult);
       socketService.off('game_ended', handleGameEnded);
+      socketService.off('character_eliminated', handleCharacterEliminated);
       socketService.off('error', handleError);
       socketService.off('game_error', handleError);
     };
@@ -242,11 +257,30 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
   const eliminateCharacter = (characterId: string) => {
     setEliminatedCharacters(prev => {
       const next = new Set(prev);
-      if (next.has(characterId)) {
+      const isEliminated = next.has(characterId);
+
+      if (isEliminated) {
         next.delete(characterId);
       } else {
         next.add(characterId);
       }
+
+      // Sincronizar com servidor
+      socketService.emit('eliminate_character', { roomId, characterId }, (response: any) => {
+        if (!response.success) {
+          // Desfazer eliminação local se falhar
+          setEliminatedCharacters(current => {
+            const reverted = new Set(current);
+            if (isEliminated) {
+              reverted.add(characterId);
+            } else {
+              reverted.delete(characterId);
+            }
+            return reverted;
+          });
+        }
+      });
+
       return next;
     });
   };
@@ -298,6 +332,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     setWinnerId(null);
     setWinnerName(null);
     setGuessResult(null);
+    setOpponentEliminatedCount(0);
   };
 
   return {
@@ -316,6 +351,7 @@ export const useGameSocket = (roomId: string): UseGameSocketResult => {
     guessResult,
     isMyTurn,
     gameMode,
+    opponentEliminatedCount,
     submitQuestion,
     answerQuestion,
     eliminateCharacter,

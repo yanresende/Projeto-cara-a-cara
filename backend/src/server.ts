@@ -369,6 +369,27 @@ io.on('connection', async (socket: CustomSocket) => {
     }
   });
 
+  // --- eliminate_character ---
+  socket.on('eliminate_character', (data, callback) => {
+    try {
+      const { roomId, characterId } = data;
+
+      const result = gameService.eliminateCharacter(roomId, characterId, socket.userId!);
+
+      io.to(roomId).emit('character_eliminated', {
+        playerId: socket.userId!,
+        characterId,
+        remainingCount: result.remainingCount,
+      });
+
+      callback({ success: true, remainingCount: result.remainingCount });
+      console.log(`[Game] Personagem ${characterId} eliminado por ${socket.username} em sala ${roomId}`);
+    } catch (error: any) {
+      console.error('Erro ao eliminar personagem:', error);
+      callback({ success: false, error: error.message || 'Erro ao eliminar personagem' });
+    }
+  });
+
   // --- request_game_state ---
   socket.on('request_game_state', async (data: { roomId: string }, callback) => {
     try {
@@ -419,6 +440,8 @@ io.on('connection', async (socket: CustomSocket) => {
         hasAskedThisTurn: game.hasAskedThisTurn,
         waitingForAnswer: game.waitingForAnswer,
         pendingQuestion: pendingQuestionText,
+        player1EliminatedCount: game.player1EliminatedCharacterIds.length,
+        player2EliminatedCount: game.player2EliminatedCharacterIds.length,
       });
 
       callback({ success: true });

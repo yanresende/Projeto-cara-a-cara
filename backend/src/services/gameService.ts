@@ -34,6 +34,8 @@ export class GameService {
       guesses: [],
       completed: false,
       createdAt: new Date(),
+      player1EliminatedCharacterIds: [],
+      player2EliminatedCharacterIds: [],
     };
 
     this.games.set(roomId, game);
@@ -124,6 +126,23 @@ export class GameService {
     game.hasAskedThisTurn = false;
 
     return { nextTurnPlayerId: game.currentTurnPlayerId };
+  }
+
+  eliminateCharacter(roomId: string, characterId: string, playerId: string): { remainingCount: number } {
+    const game = this.games.get(roomId);
+    if (!game || game.completed) throw new Error('Nenhum jogo ativo nessa sala');
+    if (!game.questions.length && game.currentTurnPlayerId !== playerId) {
+      throw new Error('Você só pode eliminar durante seu turno');
+    }
+
+    const isPlayer1 = playerId === game.player1Id;
+    const eliminatedArray = isPlayer1 ? game.player1EliminatedCharacterIds : game.player2EliminatedCharacterIds;
+
+    if (!eliminatedArray.includes(characterId)) {
+      eliminatedArray.push(characterId);
+    }
+
+    return { remainingCount: eliminatedArray.length };
   }
 
   private getOpponentId(game: GameRound, playerId: string): string {

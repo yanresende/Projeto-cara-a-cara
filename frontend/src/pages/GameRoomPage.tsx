@@ -51,6 +51,7 @@ export const GameRoomPage: React.FC = () => {
     guessResult,
     isMyTurn,
     gameMode,
+    opponentEliminatedCount,
     submitQuestion,
     answerQuestion,
     eliminateCharacter,
@@ -246,6 +247,11 @@ export const GameRoomPage: React.FC = () => {
             <span className="player-card-league">
               {LEAGUE_ICON[getLeagueKey(oppLP)]} {oppLP} LP
             </span>
+            {characters.length > 0 && (
+              <span className="player-card-remaining">
+                🎭 {characters.length - opponentEliminatedCount} personagens
+              </span>
+            )}
           </div>
           {!isMyTurn && <div className="player-card-turn-label">⏳ Pensando...</div>}
         </div>

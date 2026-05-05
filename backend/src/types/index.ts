@@ -117,6 +117,8 @@ export interface GameRound {
   completed: boolean;
   winner?: string;
   createdAt: Date;
+  player1EliminatedCharacterIds: string[];
+  player2EliminatedCharacterIds: string[];
 }
 
 export interface GameMessage {

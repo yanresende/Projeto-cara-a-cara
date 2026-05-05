@@ -199,12 +199,11 @@ export const GameRoomPage: React.FC = () => {
   const equipped = user?.equippedItems ?? {};
   const boardSkinClass = ITEM_BY_ID[equipped.boardSkin ?? DEFAULT_EQUIPPED.boardSkin]?.cssClass ?? '';
   const cardFrameClass = ITEM_BY_ID[equipped.cardFrame ?? DEFAULT_EQUIPPED.cardFrame]?.cssClass ?? '';
+  const myBannerClass = ITEM_BY_ID[equipped.turnBanner ?? DEFAULT_EQUIPPED.turnBanner]?.cssClass ?? 'banner-default';
+  const oppBannerClass = ITEM_BY_ID[opponentProfile?.equippedItems?.turnBanner ?? DEFAULT_EQUIPPED.turnBanner]?.cssClass ?? 'banner-default';
 
   const renderPlayersBar = () => {
     if (!gameStarted) return null;
-
-    const myBannerClass = ITEM_BY_ID[equipped.turnBanner ?? DEFAULT_EQUIPPED.turnBanner]?.cssClass ?? 'banner-default';
-    const oppBannerClass = ITEM_BY_ID[opponentProfile?.equippedItems?.turnBanner ?? DEFAULT_EQUIPPED.turnBanner]?.cssClass ?? 'banner-default';
     const myProfileFrameClass = ITEM_BY_ID[equipped.profileFrame ?? DEFAULT_EQUIPPED.profileFrame]?.cssClass ?? '';
     const oppProfileFrameClass = ITEM_BY_ID[opponentProfile?.equippedItems?.profileFrame ?? DEFAULT_EQUIPPED.profileFrame]?.cssClass ?? '';
 
@@ -475,7 +474,7 @@ export const GameRoomPage: React.FC = () => {
 
       {showTurnBanner && (
         <div className="turn-announcement-overlay">
-          <div className={`turn-announcement-card ${turnBannerMyTurn ? 'my-turn' : 'opponent-turn'}`}>
+          <div className={`turn-announcement-card ${turnBannerMyTurn ? myBannerClass : oppBannerClass}`}>
             <span className="turn-announcement-icon">{turnBannerMyTurn ? '⚡' : '⏳'}</span>
             <div className="turn-announcement-title">
               {turnBannerMyTurn ? 'SEU TURNO!' : `Turno de ${opponentName}`}

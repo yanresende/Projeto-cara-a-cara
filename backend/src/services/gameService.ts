@@ -156,8 +156,11 @@ export class GameService {
     const isPlayer1 = playerId === game.player1Id;
     const eliminatedArray = isPlayer1 ? game.player1EliminatedCharacterIds : game.player2EliminatedCharacterIds;
 
-    if (!eliminatedArray.includes(characterId)) {
+    const idx = eliminatedArray.indexOf(characterId);
+    if (idx === -1) {
       eliminatedArray.push(characterId);
+    } else {
+      eliminatedArray.splice(idx, 1);
     }
 
     return { remainingCount: eliminatedArray.length };

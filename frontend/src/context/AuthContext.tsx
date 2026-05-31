@@ -102,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    socketService.disconnect();
     setUser(null);
     setToken(null);
     clearAuth();

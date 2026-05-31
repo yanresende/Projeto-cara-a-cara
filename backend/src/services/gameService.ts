@@ -1,6 +1,16 @@
 import { GameRound, Guess, Question } from '../types/index';
+import { Character } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '../server';
+
+function fisherYatesShuffle<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 export class GameService {
   private games: Map<string, GameRound> = new Map();
@@ -12,7 +22,7 @@ export class GameService {
       throw new Error('O tema precisa ter pelo menos 2 personagens');
     }
 
-    const shuffled = [...characters].sort(() => Math.random() - 0.5);
+    const shuffled = fisherYatesShuffle(characters);
     const p1Secret = shuffled[0];
     const p2Secret = shuffled[1];
 
@@ -239,11 +249,11 @@ export class GameService {
     this.games.delete(roomId);
   }
 
-  async getCharactersByTheme(themeId: string): Promise<any[]> {
+  async getCharactersByTheme(themeId: string): Promise<Character[]> {
     return await prisma.character.findMany({ where: { themeId } });
   }
 
-  async getCharacterById(characterId: string): Promise<any> {
+  async getCharacterById(characterId: string): Promise<Character | null> {
     return await prisma.character.findUnique({ where: { id: characterId } });
   }
 }
